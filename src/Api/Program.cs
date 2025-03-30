@@ -10,6 +10,20 @@ builder.Services.ConfigureOptions();
 builder.Services.ConfigureInfrastructureDependencies();
 builder.Services.ConfigureCoreDependencies();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(
+            "Development",
+            policy =>
+            {
+                policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            }
+        );
+    });
+}
+
 builder.Services.AddControllers(options =>
 {
     options.ModelBinderProviders.Insert(0, new AuthorizedUserBinderProvider());
@@ -70,6 +84,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/api-docs/docs/swagger.json", "Docs");
         c.RoutePrefix = "api-docs";
     });
+
+    app.UseCors("Development");
 }
 
 app.UseMiddleware<JwtMiddleware>();

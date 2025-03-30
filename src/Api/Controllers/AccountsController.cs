@@ -22,7 +22,7 @@ public class AccountsController(
     [HttpPost("")]
     public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
     {
-        var result = await createAccountUseCase.Execute(body.UserName, body.Email, body.Password);
+        var result = await createAccountUseCase.Execute(body.Username, body.Email, body.Password);
 
         if (result is { IsFailure: true, Exception: AlreadyExists<Account> })
         {
@@ -63,7 +63,7 @@ public class AccountsController(
         return ApiResponse.Ok("Password reset email sent");
     }
 
-    [HttpGet("@me/activation/{code}")]
+    [HttpPost("@me/activation/{code}")]
     public async Task<IActionResult> Activate([FromRoute] string code)
     {
         var result = await activateAccountUseCase.Execute(code);
