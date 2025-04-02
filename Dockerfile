@@ -11,8 +11,9 @@ RUN dotnet restore ./Core
 RUN dotnet restore ./Infrastructure
 
 COPY  src .
+ARG ENV
 
-RUN dotnet publish ./Api --configuration Development -o out
+RUN dotnet publish ./Api --configuration $ENV -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 

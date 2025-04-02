@@ -1,6 +1,9 @@
 services:
     app:
-        build: .
+        build:
+            context: .
+            args:
+                - ENV=Development
         ports:
             - "80:8080"
         environment:
