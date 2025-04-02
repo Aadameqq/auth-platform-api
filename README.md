@@ -6,10 +6,13 @@ easy to develop, and highly customizable
 ## Quick Start
 
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker-compose -f docker-compose.dev.yml up app
 ```
 
 ## Development
+
+If on linux, you can use scripts.sh
+Otherwise:
 
 ### Running app
 
@@ -30,7 +33,7 @@ dotnet watch --project ./src/Api/Api.csproj
 Run all services (db, redis, smtp, etc.)
 
 ```bash
-docker-compose up
+docker-compose -f docker-compose.dev.yml up database smtp redis
 ```
 
 ### Database
