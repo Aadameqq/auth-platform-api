@@ -13,6 +13,8 @@ namespace Infrastructure.Other;
 public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenService
 {
     private const string SessionIdClaimType = "sessionId";
+    private const string AccountIdClaimType = "accountId";
+    private const string AccountRoleClaimType = "accountRole";
     private const string TokenIdClaimType = "tokenId";
 
     private readonly SymmetricSecurityKey accessTokenSigningKey = new(
@@ -124,8 +126,8 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
     {
         var accessTokenClaims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, account.Id.ToString()),
-            new(ClaimTypes.Role, account.Role.Name),
+            new(AccountIdClaimType, account.Id.ToString()),
+            new(AccountRoleClaimType, account.Role.Name),
             new(SessionIdClaimType, sessionId.ToString()),
         };
 
@@ -141,7 +143,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
     {
         var refreshTokenClaims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new(AccountIdClaimType, account.Id.ToString()),
             new(SessionIdClaimType, sessionId.ToString()),
             new(TokenIdClaimType, tokenId.ToString()),
         };
