@@ -61,6 +61,11 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
+      "Dapper": {
+        "type": "Transitive",
+        "resolved": "2.1.66",
+        "contentHash": "/q77jUgDOS+bzkmk3Vy9SiWMaetTw+NOoPAV0xPBsGVAyljd5S6P+4RUW7R3ZUGGr9lDRyPKgAMj2UAOwvqZYw=="
+      },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
         "resolved": "17.6.0",
@@ -1060,6 +1065,7 @@
       "core": {
         "type": "Project",
         "dependencies": {
+          "Dapper": "[2.1.66, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[9.0.0, )"
         }
       }

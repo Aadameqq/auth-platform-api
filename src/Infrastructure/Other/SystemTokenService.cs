@@ -60,9 +60,9 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
                 return null;
             }
 
-            var userId = Guid.Parse(GetClaim(principal, ClaimTypes.NameIdentifier));
+            var userId = Guid.Parse(GetClaim(principal, AccountIdClaimType));
             var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
-            var role = GetClaim(principal, ClaimTypes.Role);
+            var role = GetClaim(principal, AccountRoleClaimType);
 
             return new AccessTokenPayload(userId, sessionId, Role.ParseOrFail(role));
         }
@@ -99,7 +99,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
                 return null;
             }
 
-            var accountId = Guid.Parse(GetClaim(principal, ClaimTypes.NameIdentifier));
+            var accountId = Guid.Parse(GetClaim(principal, AccountIdClaimType));
             var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
             var tokenId = Guid.Parse(GetClaim(principal, TokenIdClaimType));
 

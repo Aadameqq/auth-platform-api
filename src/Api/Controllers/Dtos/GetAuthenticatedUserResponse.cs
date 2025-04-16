@@ -1,10 +1,10 @@
-using Core.Domain;
+using Core.Dtos;
 
 namespace Api.Controllers.Dtos;
 
 public record GetAuthenticatedUserResponse
 {
-    public GetAuthenticatedUserResponse(Account account)
+    public GetAuthenticatedUserResponse(AccountDto account)
     {
         Id = account.Id;
         UserName = account.UserName;

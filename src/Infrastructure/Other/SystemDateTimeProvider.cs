@@ -1,6 +1,6 @@
 using Core.Ports;
 
-namespace Infrastructure;
+namespace Infrastructure.Other;
 
 public class SystemDateTimeProvider : DateTimeProvider
 {

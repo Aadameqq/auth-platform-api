@@ -1,6 +1,7 @@
 using Core.Ports;
 using Infrastructure.Options;
 using Infrastructure.Other;
+using Infrastructure.Persistence.Dapper;
 using Infrastructure.Persistence.EF;
 using Infrastructure.Persistence.Redis;
 using Infrastructure.Smtp;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
         services.AddSingleton<TokenService, SystemTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
+        services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();
         return services;
     }
 }
