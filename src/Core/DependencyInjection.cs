@@ -5,7 +5,7 @@ namespace Core;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection ConfigureCoreDependencies(this IServiceCollection services)
+    public static void ConfigureCoreDependencies(this IServiceCollection services)
     {
         services.AddScoped<ActivateAccountUseCase>();
         services.AddScoped<CreateAccountUseCase>();
@@ -19,6 +19,5 @@ public static class DependencyInjection
         services.AddScoped<UnassignRoleUseCase>();
         services.AddScoped<ListRolesUseCase>();
         services.AddScoped<ResetPasswordUseCase>();
-        return services;
     }
 }

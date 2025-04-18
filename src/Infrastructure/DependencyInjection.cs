@@ -13,9 +13,7 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection ConfigureInfrastructureDependencies(
-        this IServiceCollection services
-    )
+    public static void ConfigureInfrastructureDependencies(this IServiceCollection services)
     {
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
@@ -35,6 +33,5 @@ public static class DependencyInjection
         services.AddSingleton<TokenService, SystemTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();
-        return services;
     }
 }

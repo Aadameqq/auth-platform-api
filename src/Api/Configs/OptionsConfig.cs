@@ -1,17 +1,16 @@
 using Infrastructure.Options;
 
-namespace Api.Options;
+namespace Api.Configs;
 
-public static class Options
+public static class OptionsConfig
 {
-    public static IServiceCollection ConfigureOptions(this IServiceCollection services)
+    public static void ConfigureOptions(this IServiceCollection services)
     {
         AddOptions<AuthOptions>(services, "Auth");
         AddOptions<DatabaseOptions>(services, "Database");
         AddOptions<SmtpOptions>(services, "Smtp");
         AddOptions<RedisOptions>(services, "Redis");
         AddOptions<AccountOptions>(services, "Account");
-        return services;
     }
 
     private static void AddOptions<T>(IServiceCollection services, string sectionName)
