@@ -1,5 +1,6 @@
 using Api.Auth;
 using Api.Configs;
+using Api.Middlewares;
 using Core;
 using Infrastructure;
 
@@ -14,7 +15,7 @@ if (!string.IsNullOrEmpty(customEnv))
 builder.Services.ConfigureOptions();
 builder.Services.ConfigureInfrastructureDependencies();
 builder.Services.ConfigureCoreDependencies();
-builder.Services.ConfigureCors(builder.Environment);
+builder.Services.ConfigureCors();
 
 builder.Services.AddControllers(options =>
 {
@@ -27,8 +28,14 @@ builder.Services.ConfigureOpenApi();
 
 var app = builder.Build();
 
-app.UseOpenApi(app.Environment);
-app.UseCors(app.Environment);
+app.UseOpenApi();
+app.UseCors();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<DelayMiddleware>();
+}
+
 app.UseMiddleware<JwtMiddleware>();
 app.MapControllers();
 

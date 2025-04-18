@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Core;
 
-public static class DependencyInjection
+public static class DependenciesConfig
 {
     public static void ConfigureCoreDependencies(this IServiceCollection services)
     {

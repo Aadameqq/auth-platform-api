@@ -33,7 +33,9 @@ public static class OpenApiConfig
         var info = new OpenApiInfo
         {
             Title = "Survey App API",
-            Description = "Application programming interface",
+            Description =
+                "Api definition for development purposes"
+                + "You can add ?delayMs= to url to slow down response time for testing",
         };
 
         services.AddSwaggerGen(options =>
@@ -44,9 +46,9 @@ public static class OpenApiConfig
         });
     }
 
-    public static void UseOpenApi(this IApplicationBuilder app, IWebHostEnvironment env)
+    public static void UseOpenApi(this WebApplication app)
     {
-        if (!env.IsDevelopment())
+        if (!app.Environment.IsDevelopment())
         {
             return;
         }

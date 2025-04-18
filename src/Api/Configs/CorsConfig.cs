@@ -2,17 +2,14 @@ namespace Api.Configs;
 
 public static class CorsConfig
 {
-    public static void ConfigureCors(this IServiceCollection services, IWebHostEnvironment env)
-    {
-        if (!env.IsDevelopment())
-        {
-            return;
-        }
+    private static readonly string DevPolicy = "Development";
 
+    public static void ConfigureCors(this IServiceCollection services)
+    {
         services.AddCors(options =>
         {
             options.AddPolicy(
-                "Development",
+                DevPolicy,
                 policy =>
                 {
                     policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
@@ -21,13 +18,13 @@ public static class CorsConfig
         });
     }
 
-    public static void UseCors(this IApplicationBuilder app, IWebHostEnvironment env)
+    public static void UseCors(this WebApplication app)
     {
-        if (!env.IsDevelopment())
+        if (!app.Environment.IsDevelopment())
         {
             return;
         }
 
-        app.UseCors("Development");
+        app.UseCors(DevPolicy);
     }
 }

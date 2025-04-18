@@ -11,7 +11,7 @@ using StackExchange.Redis;
 
 namespace Infrastructure;
 
-public static class DependencyInjection
+public static class DependenciesConfig
 {
     public static void ConfigureInfrastructureDependencies(this IServiceCollection services)
     {
