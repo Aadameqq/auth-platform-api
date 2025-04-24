@@ -24,7 +24,7 @@ public static class DependenciesConfig
         services.AddDbContext<DatabaseContext>();
         services.AddScoped<PasswordHasher, BCryptPasswordService>();
         services.AddScoped<PasswordVerifier, BCryptPasswordService>();
-        services.AddScoped<AccountsRepository, EfAccountsRepository>();
+        services.AddScoped<UnitOfWork, EfUnitOfWork>();
         services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<ActivationCodesRepository, RedisActivationCodesRepository>();

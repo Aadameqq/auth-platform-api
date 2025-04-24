@@ -19,6 +19,11 @@ public class InitializePasswordResetUseCase(
             return new NoSuch<Account>();
         }
 
+        if (!account.HasPassword())
+        {
+            return new NoPassword();
+        }
+
         var code = await codesRepository.Create(account);
 
         _ = emailSender.Send(account, code);

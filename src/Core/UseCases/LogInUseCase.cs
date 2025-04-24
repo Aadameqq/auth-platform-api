@@ -20,6 +20,11 @@ public class LogInUseCase(
             return new NoSuch<Account>();
         }
 
+        if (!account.HasPassword())
+        {
+            return new NoPassword();
+        }
+
         if (!passwordVerifier.Verify(password, account.Password))
         {
             return new InvalidCredentials();

@@ -20,7 +20,7 @@ public class ActivateAccountUseCase(
 
         var user = await accountsRepository.FindById(userId.Value);
 
-        if (user is null)
+        if (user is null || user.HasBeenActivated())
         {
             return new NoSuch<Account>();
         }
