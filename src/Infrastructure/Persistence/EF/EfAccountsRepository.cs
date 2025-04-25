@@ -26,15 +26,4 @@ public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
         ctx.Accounts.Update(account);
         return Task.CompletedTask;
     }
-
-    public async Task UpdateAndFlush(Account account)
-    {
-        await Update(account);
-        await Flush();
-    }
-
-    public async Task Flush()
-    {
-        await ctx.SaveChangesAsync();
-    }
 }

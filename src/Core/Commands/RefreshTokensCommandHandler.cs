@@ -6,13 +6,14 @@ using Core.Ports;
 namespace Core.Commands;
 
 public class RefreshTokensCommandHandler(
-    AccountsRepository accountsRepository,
+    UnitOfWork uow,
     DateTimeProvider dateTimeProvider,
     TokenService tokenService
 )
 {
     public async Task<Result<TokenPairOutput>> Execute(string token)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var payload = await tokenService.FetchRefreshTokenPayloadIfValid(token);
 
         if (payload is null)
@@ -31,13 +32,15 @@ public class RefreshTokensCommandHandler(
 
         if (result is { IsFailure: true, Exception: NoSuch<AuthSession> or InvalidToken })
         {
-            await accountsRepository.UpdateAndFlush(account);
+            await accountsRepository.Update(account);
+            await uow.Flush();
             return result.Exception;
         }
 
         var pair = tokenService.CreateTokenPair(account, result.Value.SessionId, result.Value.Id);
 
-        await accountsRepository.UpdateAndFlush(account);
+        await accountsRepository.Update(account);
+        await uow.Flush();
         return pair;
     }
 }

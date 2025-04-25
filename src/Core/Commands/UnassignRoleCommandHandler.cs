@@ -4,10 +4,11 @@ using Core.Ports;
 
 namespace Core.Commands;
 
-public class UnassignRoleCommandHandler(AccountsRepository accountsRepository)
+public class UnassignRoleCommandHandler(UnitOfWork uow)
 {
     public async Task<Result> Execute(Guid issuerId, Guid accountId)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindById(accountId);
 
         if (account is null)
@@ -22,7 +23,8 @@ public class UnassignRoleCommandHandler(AccountsRepository accountsRepository)
             return result.Exception;
         }
 
-        await accountsRepository.UpdateAndFlush(account);
+        await accountsRepository.Update(account);
+        await uow.Flush();
 
         return Result.Success();
     }

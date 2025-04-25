@@ -5,7 +5,7 @@ using Core.Ports;
 namespace Core.Commands;
 
 public class CreateAccountCommandHandler(
-    AccountsRepository accountsRepository,
+    UnitOfWork uow,
     PasswordHasher passwordHasher,
     ActivationCodesRepository activationCodesRepository,
     ActivationCodeEmailSender codeEmailSender
@@ -13,6 +13,7 @@ public class CreateAccountCommandHandler(
 {
     public async Task<Result> Execute(string userName, string email, string plainPassword)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var found = await accountsRepository.FindByEmail(email);
 
         if (found != null)
@@ -30,7 +31,7 @@ public class CreateAccountCommandHandler(
 
         _ = codeEmailSender.Send(account, code);
 
-        await accountsRepository.Flush();
+        await uow.Flush();
 
         return Result.Success();
     }

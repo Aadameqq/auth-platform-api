@@ -4,10 +4,11 @@ using Core.Ports;
 
 namespace Core.Commands;
 
-public class LogOutCommandHandler(AccountsRepository accountsRepository)
+public class LogOutCommandHandler(UnitOfWork uow)
 {
     public async Task<Result> Execute(Guid accountId, Guid sessionId)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindById(accountId);
 
         if (account is null)
@@ -17,7 +18,8 @@ public class LogOutCommandHandler(AccountsRepository accountsRepository)
 
         account.DestroySession(sessionId);
 
-        await accountsRepository.UpdateAndFlush(account);
+        await accountsRepository.Update(account);
+        await uow.Flush();
 
         return Result.Success();
     }

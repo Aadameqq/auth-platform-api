@@ -6,7 +6,7 @@ using Core.Ports;
 namespace Core.Commands;
 
 public class LogInCommandHandler(
-    AccountsRepository accountsRepository,
+    UnitOfWork uow,
     TokenService tokenService,
     PasswordVerifier passwordVerifier,
     DateTimeProvider dateTimeProvider
@@ -14,6 +14,8 @@ public class LogInCommandHandler(
 {
     public async Task<Result<TokenPairOutput>> Execute(string email, string password)
     {
+        var accountsRepository = uow.GetAccountsRepository();
+
         var account = await accountsRepository.FindByEmail(email);
         if (account is null)
         {
@@ -43,7 +45,8 @@ public class LogInCommandHandler(
             result.Value.Id
         );
 
-        await accountsRepository.UpdateAndFlush(account);
+        await accountsRepository.Update(account);
+        await uow.Flush();
 
         return tokenPair;
     }

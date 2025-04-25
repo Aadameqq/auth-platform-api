@@ -6,11 +6,12 @@ namespace Core.Commands;
 
 public class ActivateAccountCommandHandler(
     ActivationCodesRepository activationCodesRepository,
-    AccountsRepository accountsRepository
+    UnitOfWork uow
 )
 {
     public async Task<Result> Execute(string code)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(code);
 
         if (userId is null)
@@ -27,7 +28,8 @@ public class ActivateAccountCommandHandler(
 
         user.Activate();
 
-        await accountsRepository.UpdateAndFlush(user);
+        await accountsRepository.Update(user);
+        await uow.Flush();
 
         return Result.Success();
     }

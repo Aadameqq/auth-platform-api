@@ -6,12 +6,13 @@ namespace Core.Commands;
 
 public class ResetPasswordCommandHandler(
     PasswordHasher passwordHasher,
-    AccountsRepository accountsRepository,
+    UnitOfWork uow,
     PasswordResetCodesRepository passwordResetCodesRepository
 )
 {
     public async Task<Result> Execute(string resetCode, string newPassword)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(resetCode);
 
         if (accountId is null)
@@ -30,7 +31,8 @@ public class ResetPasswordCommandHandler(
 
         account.ResetPassword(passwordHash);
 
-        await accountsRepository.UpdateAndFlush(account);
+        await accountsRepository.Update(account);
+        await uow.Flush();
 
         return Result.Success();
     }
