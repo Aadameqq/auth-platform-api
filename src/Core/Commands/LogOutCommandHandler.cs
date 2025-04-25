@@ -7,7 +7,7 @@ namespace Core.Commands;
 
 public class LogOutCommandHandler(UnitOfWork uow) : CommandHandler<LogOutCommand>
 {
-    public async Task<Result> Handle(LogOutCommand cmd)
+    public async Task<Result> Handle(LogOutCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindById(cmd.AccountId);

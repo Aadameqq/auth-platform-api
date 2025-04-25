@@ -1,25 +1,22 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
 using Api.Dtos;
-using Core.Commands;
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(
-    LogInCommandHandler logInCommandHandler,
-    LogOutCommandHandler logOutCommandHandler,
-    RefreshTokensCommandHandler refreshTokensCommandHandler
-) : ControllerBase
+public class AuthController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
     {
-        var result = await logInCommandHandler.Execute(body.Email, body.Password);
+        var result = await mediator.Send(new LogInCommand(body.Email, body.Password));
 
         if (result.IsFailure)
         {
@@ -30,7 +27,7 @@ public class AuthController(
                 AccountNotActivated _ => ApiResponse.Unauthorized(
                     "Account has not been activated yet"
                 ),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 
@@ -41,7 +38,7 @@ public class AuthController(
     [RequireAuth]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
-        var result = await logOutCommandHandler.Execute(authUser.UserId, authUser.SessionId);
+        var result = await mediator.Send(new LogOutCommand(authUser.UserId, authUser.SessionId));
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -56,7 +53,7 @@ public class AuthController(
         [FromBody] RefreshTokensBody body
     )
     {
-        var result = await refreshTokensCommandHandler.Execute(body.RefreshToken);
+        var result = await mediator.Send(new RefreshTokensCommand(body.RefreshToken));
 
         if (result.IsFailure)
         {
@@ -65,7 +62,7 @@ public class AuthController(
                 NoSuch<Account> _ => ApiResponse.Unauthorized(),
                 NoSuch<AuthSession> _ => ApiResponse.NotFound(),
                 InvalidToken _ => ApiResponse.NotFound(),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 

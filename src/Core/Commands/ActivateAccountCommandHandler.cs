@@ -10,7 +10,7 @@ public class ActivateAccountCommandHandler(
     UnitOfWork uow
 ) : CommandHandler<ActivateAccountCommand>
 {
-    public async Task<Result> Handle(ActivateAccountCommand cmd)
+    public async Task<Result> Handle(ActivateAccountCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(cmd.Code);

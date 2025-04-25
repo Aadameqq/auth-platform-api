@@ -12,7 +12,7 @@ public class CreateAccountCommandHandler(
     ActivationCodeEmailSender codeEmailSender
 ) : CommandHandler<CreateAccountCommand>
 {
-    public async Task<Result> Handle(CreateAccountCommand cmd)
+    public async Task<Result> Handle(CreateAccountCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var found = await accountsRepository.FindByEmail(cmd.Email);
@@ -30,7 +30,7 @@ public class CreateAccountCommandHandler(
 
         var code = await activationCodesRepository.Create(account);
 
-        _ = codeEmailSender.Send(account, code);
+        await codeEmailSender.Send(account, code);
 
         await uow.Flush();
 

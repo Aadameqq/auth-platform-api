@@ -7,7 +7,7 @@ namespace Core.Commands;
 
 public class AssignRoleCommandHandler(UnitOfWork uow) : CommandHandler<AssignRoleCommand>
 {
-    public async Task<Result> Handle(AssignRoleCommand cmd)
+    public async Task<Result> Handle(AssignRoleCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindById(cmd.AccountId);

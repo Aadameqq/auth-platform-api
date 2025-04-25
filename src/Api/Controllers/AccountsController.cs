@@ -1,9 +1,10 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
-using Core.Commands;
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -11,19 +12,16 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AccountsController(
-    CreateAccountCommandHandler createAccountCommandHandler,
-    GetCurrentAccountQueryHandler getCurrentAccountQueryHandler,
-    InitializePasswordResetCommandHandler initializePasswordResetCommandHandler,
-    ActivateAccountCommandHandler activateAccountCommandHandler,
-    ResetPasswordCommandHandler resetPasswordCommandHandler,
-    AssignRoleCommandHandler assignRoleCommandHandler,
-    UnassignRoleCommandHandler unassignRoleCommandHandler
+    IMediator mediator,
+    GetCurrentAccountQueryHandler getCurrentAccountQueryHandler
 ) : ControllerBase
 {
     [HttpPost("")]
     public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
     {
-        var result = await createAccountCommandHandler.Execute(body.Username, body.Email, body.Password);
+        var result = await mediator.Send(
+            new CreateAccountCommand(body.Username, body.Email, body.Password)
+        );
 
         if (result is { IsFailure: true, Exception: AlreadyExists<Account> })
         {
@@ -47,6 +45,7 @@ public class AccountsController(
         }
 
         return new GetAuthenticatedUserResponse(result.Value);
+        return Ok();
     }
 
     [HttpDelete("@me/password")]
@@ -54,7 +53,7 @@ public class AccountsController(
         [FromBody] InitializeResetPasswordBody body
     )
     {
-        var result = await initializePasswordResetCommandHandler.Execute(body.Email);
+        var result = await mediator.Send(new InitializePasswordResetCommand(body.Email));
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -67,7 +66,7 @@ public class AccountsController(
     [HttpPost("@me/activation/{code}")]
     public async Task<IActionResult> Activate([FromRoute] string code)
     {
-        var result = await activateAccountCommandHandler.Execute(code);
+        var result = await mediator.Send(new ActivateAccountCommand(code));
 
         if (result.IsFailure)
         {
@@ -75,7 +74,7 @@ public class AccountsController(
             {
                 NoSuch<Account> _ => ApiResponse.NotFound(),
                 NoSuch _ => ApiResponse.NotFound(),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 
@@ -88,7 +87,7 @@ public class AccountsController(
         [FromBody] ResetPasswordBody body
     )
     {
-        var result = await resetPasswordCommandHandler.Execute(code, body.NewPassword);
+        var result = await mediator.Send(new ResetPasswordCommand(code, body.NewPassword));
 
         if (result is { IsFailure: true, Exception: NoSuch })
         {
@@ -122,7 +121,9 @@ public class AccountsController(
             return ApiResponse.NotFound("Role not found");
         }
 
-        var result = await assignRoleCommandHandler.Execute(issuer.UserId, parsedAccountId, role);
+        var result = await mediator.Send(
+            new AssignRoleCommand(issuer.UserId, parsedAccountId, role)
+        );
 
         if (result.IsFailure)
         {
@@ -135,7 +136,7 @@ public class AccountsController(
                 RoleAlreadyAssigned _ => ApiResponse.Conflict(
                     "Account already assigned to role. Remove role before assigning"
                 ),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 
@@ -160,7 +161,7 @@ public class AccountsController(
             return ApiResponse.NotFound();
         }
 
-        var result = await unassignRoleCommandHandler.Execute(issuer.UserId, parsedAccountId);
+        var result = await mediator.Send(new UnassignRoleCommand(issuer.UserId, parsedAccountId));
 
         if (result.IsFailure)
         {
@@ -170,7 +171,7 @@ public class AccountsController(
                 CannotManageOwn<Role> _ => ApiResponse.Forbid(
                     "Unassigning a role from your own account is not permitted"
                 ),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 

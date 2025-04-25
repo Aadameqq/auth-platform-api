@@ -6,13 +6,14 @@ using Core.Ports;
 namespace Core.Commands;
 
 public class InitializePasswordResetCommandHandler(
-    AccountsRepository accountsRepository,
+    UnitOfWork uow,
     PasswordResetCodesRepository codesRepository,
     PasswordResetEmailSender emailSender
 ) : CommandHandler<InitializePasswordResetCommand>
 {
-    public async Task<Result> Handle(InitializePasswordResetCommand cmd)
+    public async Task<Result> Handle(InitializePasswordResetCommand cmd, CancellationToken _)
     {
+        var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindByEmail(cmd.Email);
 
         if (account is null)
@@ -27,7 +28,7 @@ public class InitializePasswordResetCommandHandler(
 
         var code = await codesRepository.Create(account);
 
-        _ = emailSender.Send(account, code);
+        await emailSender.Send(account, code);
 
         return Result.Success();
     }

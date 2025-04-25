@@ -12,7 +12,7 @@ public class LogInCommandHandler(
     SessionCreator sessionCreator
 ) : CommandHandler<LogInCommand, TokenPairOutput>
 {
-    public async Task<Result<TokenPairOutput>> Handle(LogInCommand cmd)
+    public async Task<Result<TokenPairOutput>> Handle(LogInCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
 

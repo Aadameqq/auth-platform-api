@@ -31,10 +31,10 @@ public abstract class OAuthCommandHandler<TCommand, TOutput>(
     OAuthStateTokensService stateTokensService,
     OAuthServiceFactory factory
 ) : OAuthCommandHandler(stateTokensService, factory), CommandHandler<TCommand, TOutput>
-    where TCommand : OAuthCommand
+    where TCommand : OAuthCommand<TOutput>
     where TOutput : class
 {
-    public async Task<Result<TOutput>> Handle(TCommand command)
+    public async Task<Result<TOutput>> Handle(TCommand command, CancellationToken _)
     {
         var result = await Authorize(command);
         if (result.IsFailure)
@@ -54,7 +54,7 @@ public abstract class OAuthCommandHandler<TCommand>(
 ) : OAuthCommandHandler(stateTokensService, factory), CommandHandler<TCommand>
     where TCommand : OAuthCommand
 {
-    public async Task<Result> Handle(TCommand command)
+    public async Task<Result> Handle(TCommand command, CancellationToken _)
     {
         var result = await Authorize(command);
         if (result.IsFailure)

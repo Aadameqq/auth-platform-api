@@ -7,7 +7,7 @@ namespace Core.Commands;
 
 public class UnassignRoleCommandHandler(UnitOfWork uow) : CommandHandler<UnassignRoleCommand>
 {
-    public async Task<Result> Handle(UnassignRoleCommand cmd)
+    public async Task<Result> Handle(UnassignRoleCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var account = await accountsRepository.FindById(cmd.AccountId);

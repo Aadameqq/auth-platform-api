@@ -11,7 +11,7 @@ public class ResetPasswordCommandHandler(
     PasswordResetCodesRepository passwordResetCodesRepository
 ) : CommandHandler<ResetPasswordCommand>
 {
-    public async Task<Result> Handle(ResetPasswordCommand cmd)
+    public async Task<Result> Handle(ResetPasswordCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(cmd.ResetCode);

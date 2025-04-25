@@ -12,7 +12,7 @@ public class RefreshTokensCommandHandler(
     TokenService tokenService
 ) : CommandHandler<RefreshTokensCommand, TokenPairOutput>
 {
-    public async Task<Result<TokenPairOutput>> Handle(RefreshTokensCommand cmd)
+    public async Task<Result<TokenPairOutput>> Handle(RefreshTokensCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var payload = await tokenService.FetchRefreshTokenPayloadIfValid(cmd.Token);
