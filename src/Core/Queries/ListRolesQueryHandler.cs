@@ -1,11 +1,12 @@
 using Core.Domain;
+using Core.Queries.Queries;
 
 namespace Core.Queries;
 
-public class ListRolesQueryHandler
+public class ListRolesQueryHandler : QueryHandler<ListRolesQuery, List<Role>>
 {
-    public Result<List<Role>> Execute()
+    public Task<Result<List<Role>>> Handle(ListRolesQuery query, CancellationToken _)
     {
-        return Role.Roles;
+        return Task.FromResult<Result<List<Role>>>(Role.Roles);
     }
 }

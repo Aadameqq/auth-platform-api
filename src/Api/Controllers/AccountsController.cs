@@ -4,6 +4,7 @@ using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Queries;
+using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +38,7 @@ public class AccountsController(
         [FromAuth] AuthorizedUser user
     )
     {
-        var result = await getCurrentAccountQueryHandler.Execute(user.UserId);
+        var result = await mediator.Send(new GetCurrentAccountQuery(user.UserId));
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {

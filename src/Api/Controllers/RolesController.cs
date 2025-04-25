@@ -1,25 +1,28 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
 using Core.Domain;
-using Core.Queries;
+using Core.Queries.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class RolesController(ListRolesQueryHandler listRolesQueryHandler) : ControllerBase
+public class RolesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
     [RequireAuth]
-    public ActionResult<GetAllRolesResponse> GetAll([FromAuth] AccessManager accessManager)
+    public async Task<ActionResult<GetAllRolesResponse>> GetAll(
+        [FromAuth] AccessManager accessManager
+    )
     {
         if (!accessManager.HasAnyRole(Role.Admin))
         {
             return ApiResponse.Forbid();
         }
 
-        var result = listRolesQueryHandler.Execute();
+        var result = await mediator.Send(new ListRolesQuery());
 
         return new GetAllRolesResponse(result.Value);
     }
