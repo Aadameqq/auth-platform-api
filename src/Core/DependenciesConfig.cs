@@ -1,4 +1,5 @@
-using Core.UseCases;
+using Core.Commands;
+using Core.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Core;
@@ -7,17 +8,17 @@ public static class DependenciesConfig
 {
     public static void ConfigureCoreDependencies(this IServiceCollection services)
     {
-        services.AddScoped<ActivateAccountUseCase>();
-        services.AddScoped<CreateAccountUseCase>();
-        services.AddSingleton<GetAccountFromTokenUseCase>();
-        services.AddScoped<GetCurrentAccountUseCase>();
-        services.AddScoped<LogInUseCase>();
-        services.AddScoped<LogOutUseCase>();
-        services.AddScoped<RefreshTokensUseCase>();
-        services.AddScoped<InitializePasswordResetUseCase>();
-        services.AddScoped<AssignRoleUseCase>();
-        services.AddScoped<UnassignRoleUseCase>();
-        services.AddScoped<ListRolesUseCase>();
-        services.AddScoped<ResetPasswordUseCase>();
+        services.AddScoped<ActivateAccountCommandHandler>();
+        services.AddScoped<CreateAccountCommandHandler>();
+        services.AddSingleton<GetTokenPayloadQueryHandler>();
+        services.AddScoped<GetCurrentAccountQueryHandler>();
+        services.AddScoped<LogInCommandHandler>();
+        services.AddScoped<LogOutCommandHandler>();
+        services.AddScoped<RefreshTokensCommandHandler>();
+        services.AddScoped<InitializePasswordResetCommandHandler>();
+        services.AddScoped<AssignRoleCommandHandler>();
+        services.AddScoped<UnassignRoleCommandHandler>();
+        services.AddScoped<ListRolesQueryHandler>();
+        services.AddScoped<ResetPasswordCommandHandler>();
     }
 }

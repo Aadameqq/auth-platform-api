@@ -1,9 +1,9 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
 using Api.Dtos;
+using Core.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.UseCases;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -11,15 +11,15 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController(
-    LogInUseCase logInUseCase,
-    LogOutUseCase logOutUseCase,
-    RefreshTokensUseCase refreshTokensUseCase
+    LogInCommandHandler logInCommandHandler,
+    LogOutCommandHandler logOutCommandHandler,
+    RefreshTokensCommandHandler refreshTokensCommandHandler
 ) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
     {
-        var result = await logInUseCase.Execute(body.Email, body.Password);
+        var result = await logInCommandHandler.Execute(body.Email, body.Password);
 
         if (result.IsFailure)
         {
@@ -30,7 +30,7 @@ public class AuthController(
                 AccountNotActivated _ => ApiResponse.Unauthorized(
                     "Account has not been activated yet"
                 ),
-                _ => throw result.Exception,
+                _ => throw result.Exception
             };
         }
 
@@ -41,7 +41,7 @@ public class AuthController(
     [RequireAuth]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
-        var result = await logOutUseCase.Execute(authUser.UserId, authUser.SessionId);
+        var result = await logOutCommandHandler.Execute(authUser.UserId, authUser.SessionId);
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -56,7 +56,7 @@ public class AuthController(
         [FromBody] RefreshTokensBody body
     )
     {
-        var result = await refreshTokensUseCase.Execute(body.RefreshToken);
+        var result = await refreshTokensCommandHandler.Execute(body.RefreshToken);
 
         if (result.IsFailure)
         {
@@ -65,7 +65,7 @@ public class AuthController(
                 NoSuch<Account> _ => ApiResponse.Unauthorized(),
                 NoSuch<AuthSession> _ => ApiResponse.NotFound(),
                 InvalidToken _ => ApiResponse.NotFound(),
-                _ => throw result.Exception,
+                _ => throw result.Exception
             };
         }
 

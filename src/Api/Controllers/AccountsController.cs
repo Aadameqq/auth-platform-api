@@ -1,8 +1,9 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
+using Core.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.UseCases;
+using Core.Queries;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -10,19 +11,19 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AccountsController(
-    CreateAccountUseCase createAccountUseCase,
-    GetCurrentAccountUseCase getCurrentAccountUseCase,
-    InitializePasswordResetUseCase initializePasswordResetUseCase,
-    ActivateAccountUseCase activateAccountUseCase,
-    ResetPasswordUseCase resetPasswordUseCase,
-    AssignRoleUseCase assignRoleUseCase,
-    UnassignRoleUseCase unassignRoleUseCase
+    CreateAccountCommandHandler createAccountCommandHandler,
+    GetCurrentAccountQueryHandler getCurrentAccountQueryHandler,
+    InitializePasswordResetCommandHandler initializePasswordResetCommandHandler,
+    ActivateAccountCommandHandler activateAccountCommandHandler,
+    ResetPasswordCommandHandler resetPasswordCommandHandler,
+    AssignRoleCommandHandler assignRoleCommandHandler,
+    UnassignRoleCommandHandler unassignRoleCommandHandler
 ) : ControllerBase
 {
     [HttpPost("")]
     public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
     {
-        var result = await createAccountUseCase.Execute(body.Username, body.Email, body.Password);
+        var result = await createAccountCommandHandler.Execute(body.Username, body.Email, body.Password);
 
         if (result is { IsFailure: true, Exception: AlreadyExists<Account> })
         {
@@ -38,7 +39,7 @@ public class AccountsController(
         [FromAuth] AuthorizedUser user
     )
     {
-        var result = await getCurrentAccountUseCase.Execute(user.UserId);
+        var result = await getCurrentAccountQueryHandler.Execute(user.UserId);
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -53,7 +54,7 @@ public class AccountsController(
         [FromBody] InitializeResetPasswordBody body
     )
     {
-        var result = await initializePasswordResetUseCase.Execute(body.Email);
+        var result = await initializePasswordResetCommandHandler.Execute(body.Email);
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -66,7 +67,7 @@ public class AccountsController(
     [HttpPost("@me/activation/{code}")]
     public async Task<IActionResult> Activate([FromRoute] string code)
     {
-        var result = await activateAccountUseCase.Execute(code);
+        var result = await activateAccountCommandHandler.Execute(code);
 
         if (result.IsFailure)
         {
@@ -74,7 +75,7 @@ public class AccountsController(
             {
                 NoSuch<Account> _ => ApiResponse.NotFound(),
                 NoSuch _ => ApiResponse.NotFound(),
-                _ => throw result.Exception,
+                _ => throw result.Exception
             };
         }
 
@@ -87,7 +88,7 @@ public class AccountsController(
         [FromBody] ResetPasswordBody body
     )
     {
-        var result = await resetPasswordUseCase.Execute(code, body.NewPassword);
+        var result = await resetPasswordCommandHandler.Execute(code, body.NewPassword);
 
         if (result is { IsFailure: true, Exception: NoSuch })
         {
@@ -121,7 +122,7 @@ public class AccountsController(
             return ApiResponse.NotFound("Role not found");
         }
 
-        var result = await assignRoleUseCase.Execute(issuer.UserId, parsedAccountId, role);
+        var result = await assignRoleCommandHandler.Execute(issuer.UserId, parsedAccountId, role);
 
         if (result.IsFailure)
         {
@@ -134,7 +135,7 @@ public class AccountsController(
                 RoleAlreadyAssigned _ => ApiResponse.Conflict(
                     "Account already assigned to role. Remove role before assigning"
                 ),
-                _ => throw result.Exception,
+                _ => throw result.Exception
             };
         }
 
@@ -159,7 +160,7 @@ public class AccountsController(
             return ApiResponse.NotFound();
         }
 
-        var result = await unassignRoleUseCase.Execute(issuer.UserId, parsedAccountId);
+        var result = await unassignRoleCommandHandler.Execute(issuer.UserId, parsedAccountId);
 
         if (result.IsFailure)
         {
@@ -169,7 +170,7 @@ public class AccountsController(
                 CannotManageOwn<Role> _ => ApiResponse.Forbid(
                     "Unassigning a role from your own account is not permitted"
                 ),
-                _ => throw result.Exception,
+                _ => throw result.Exception
             };
         }
 

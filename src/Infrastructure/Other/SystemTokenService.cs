@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Dtos;
 using Core.Ports;
@@ -42,7 +43,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
             ValidateIssuer = true,
             ValidIssuer = authOptions.Value.Issuer,
             ValidateAudience = false,
-            IssuerSigningKey = accessTokenSigningKey,
+            IssuerSigningKey = accessTokenSigningKey
         };
         try
         {
@@ -81,7 +82,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
             ValidateIssuer = true,
             ValidIssuer = authOptions.Value.Issuer,
             ValidateAudience = false,
-            IssuerSigningKey = refreshTokenSigningKey,
+            IssuerSigningKey = refreshTokenSigningKey
         };
         try
         {
@@ -128,7 +129,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
         {
             new(AccountIdClaimType, account.Id.ToString()),
             new(AccountRoleClaimType, account.Role.Name),
-            new(SessionIdClaimType, sessionId.ToString()),
+            new(SessionIdClaimType, sessionId.ToString())
         };
 
         return GenerateToken(
@@ -145,7 +146,7 @@ public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenServic
         {
             new(AccountIdClaimType, account.Id.ToString()),
             new(SessionIdClaimType, sessionId.ToString()),
-            new(TokenIdClaimType, tokenId.ToString()),
+            new(TokenIdClaimType, tokenId.ToString())
         };
 
         return GenerateToken(
