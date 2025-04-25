@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
@@ -8,12 +9,12 @@ public class ResetPasswordCommandHandler(
     PasswordHasher passwordHasher,
     UnitOfWork uow,
     PasswordResetCodesRepository passwordResetCodesRepository
-)
+) : CommandHandler<ResetPasswordCommand>
 {
-    public async Task<Result> Execute(string resetCode, string newPassword)
+    public async Task<Result> Handle(ResetPasswordCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(resetCode);
+        var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(cmd.ResetCode);
 
         if (accountId is null)
         {
@@ -27,7 +28,7 @@ public class ResetPasswordCommandHandler(
             return new NoSuch();
         }
 
-        var passwordHash = passwordHasher.HashPassword(newPassword);
+        var passwordHash = passwordHasher.HashPassword(cmd.NewPassword);
 
         account.ResetPassword(passwordHash);
 

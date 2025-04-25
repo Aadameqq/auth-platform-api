@@ -1,22 +1,23 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class LogOutCommandHandler(UnitOfWork uow)
+public class LogOutCommandHandler(UnitOfWork uow) : CommandHandler<LogOutCommand>
 {
-    public async Task<Result> Execute(Guid accountId, Guid sessionId)
+    public async Task<Result> Handle(LogOutCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var account = await accountsRepository.FindById(accountId);
+        var account = await accountsRepository.FindById(cmd.AccountId);
 
         if (account is null)
         {
             return new NoSuch<Account>();
         }
 
-        account.DestroySession(sessionId);
+        account.DestroySession(cmd.SessionId);
 
         await accountsRepository.Update(account);
         await uow.Flush();

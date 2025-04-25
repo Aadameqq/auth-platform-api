@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Exceptions;
@@ -9,12 +10,12 @@ public class RefreshTokensCommandHandler(
     UnitOfWork uow,
     DateTimeProvider dateTimeProvider,
     TokenService tokenService
-)
+) : CommandHandler<RefreshTokensCommand, TokenPairOutput>
 {
-    public async Task<Result<TokenPairOutput>> Execute(string token)
+    public async Task<Result<TokenPairOutput>> Handle(RefreshTokensCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var payload = await tokenService.FetchRefreshTokenPayloadIfValid(token);
+        var payload = await tokenService.FetchRefreshTokenPayloadIfValid(cmd.Token);
 
         if (payload is null)
         {

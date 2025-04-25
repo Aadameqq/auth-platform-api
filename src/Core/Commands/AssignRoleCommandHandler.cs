@@ -1,22 +1,23 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class AssignRoleCommandHandler(UnitOfWork uow)
+public class AssignRoleCommandHandler(UnitOfWork uow) : CommandHandler<AssignRoleCommand>
 {
-    public async Task<Result> Execute(Guid issuerId, Guid accountId, Role role)
+    public async Task<Result> Handle(AssignRoleCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var account = await accountsRepository.FindById(accountId);
+        var account = await accountsRepository.FindById(cmd.AccountId);
 
         if (account is null)
         {
             return new NoSuch<Account>();
         }
 
-        var result = account.AssignRole(role, issuerId);
+        var result = account.AssignRole(cmd.Role, cmd.IssuerId);
 
         if (result is { IsFailure: true, Exception: CannotManageOwn<Role> or RoleAlreadyAssigned })
         {

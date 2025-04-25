@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
@@ -7,12 +8,12 @@ namespace Core.Commands;
 public class ActivateAccountCommandHandler(
     ActivationCodesRepository activationCodesRepository,
     UnitOfWork uow
-)
+) : CommandHandler<ActivateAccountCommand>
 {
-    public async Task<Result> Execute(string code)
+    public async Task<Result> Handle(ActivateAccountCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(code);
+        var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(cmd.Code);
 
         if (userId is null)
         {

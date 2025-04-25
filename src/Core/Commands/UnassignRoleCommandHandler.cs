@@ -1,22 +1,23 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class UnassignRoleCommandHandler(UnitOfWork uow)
+public class UnassignRoleCommandHandler(UnitOfWork uow) : CommandHandler<UnassignRoleCommand>
 {
-    public async Task<Result> Execute(Guid issuerId, Guid accountId)
+    public async Task<Result> Handle(UnassignRoleCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var account = await accountsRepository.FindById(accountId);
+        var account = await accountsRepository.FindById(cmd.AccountId);
 
         if (account is null)
         {
             return new NoSuch<Account>();
         }
 
-        var result = account.RemoveRole(issuerId);
+        var result = account.RemoveRole(cmd.IssuerId);
 
         if (result is { IsFailure: true, Exception: CannotManageOwn<Role> })
         {

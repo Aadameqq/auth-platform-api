@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Exceptions;
@@ -7,16 +8,15 @@ namespace Core.Commands;
 
 public class LogInCommandHandler(
     UnitOfWork uow,
-    TokenService tokenService,
     PasswordVerifier passwordVerifier,
-    DateTimeProvider dateTimeProvider
-)
+    SessionCreator sessionCreator
+) : CommandHandler<LogInCommand, TokenPairOutput>
 {
-    public async Task<Result<TokenPairOutput>> Execute(string email, string password)
+    public async Task<Result<TokenPairOutput>> Handle(LogInCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
 
-        var account = await accountsRepository.FindByEmail(email);
+        var account = await accountsRepository.FindByEmail(cmd.Email);
         if (account is null)
         {
             return new NoSuch<Account>();
@@ -27,27 +27,21 @@ public class LogInCommandHandler(
             return new NoPassword();
         }
 
-        if (!passwordVerifier.Verify(password, account.Password))
+        if (!passwordVerifier.Verify(cmd.Password, account.Password))
         {
             return new InvalidCredentials();
         }
 
-        var result = account.CreateSession(dateTimeProvider.Now());
+        var result = sessionCreator.CreateSession(account);
 
         if (result is { IsFailure: true, Exception: AccountNotActivated })
         {
             return result.Exception;
         }
 
-        var tokenPair = tokenService.CreateTokenPair(
-            account,
-            result.Value.SessionId,
-            result.Value.Id
-        );
-
         await accountsRepository.Update(account);
         await uow.Flush();
 
-        return tokenPair;
+        return result.Value;
     }
 }

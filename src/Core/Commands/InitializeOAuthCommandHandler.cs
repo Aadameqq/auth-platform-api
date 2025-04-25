@@ -1,3 +1,6 @@
+using Core.Commands.Commands;
+using Core.Commands.Outputs;
+using Core.Domain;
 using Core.Dtos;
 using Core.Ports;
 
@@ -6,14 +9,16 @@ namespace Core.Commands;
 public class InitializeOAuthCommandHandler(
     OAuthStateTokensService tokensService,
     OAuthServiceFactory factory
-)
+) : CommandHandler<InitializeOAuthCommand, OAuthUriOutput>
 {
-    public async Task<string> Execute(string redirectUri, string provider)
+    public async Task<Result<OAuthUriOutput>> Handle(InitializeOAuthCommand cmd)
     {
-        var stateToken = await tokensService.Create(new OAuthState(provider));
+        var stateToken = await tokensService.Create(new OAuthState(cmd.Provider));
 
-        var service = factory.CreateInstance(provider);
+        var service = factory.CreateInstance(cmd.Provider);
 
-        return service.GenerateUrlFor(stateToken, redirectUri);
+        var uri = service.GenerateUrlFor(stateToken, cmd.RedirectUri);
+
+        return new OAuthUriOutput(uri);
     }
 }

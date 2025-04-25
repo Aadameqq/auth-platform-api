@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
@@ -8,11 +9,11 @@ public class InitializePasswordResetCommandHandler(
     AccountsRepository accountsRepository,
     PasswordResetCodesRepository codesRepository,
     PasswordResetEmailSender emailSender
-)
+) : CommandHandler<InitializePasswordResetCommand>
 {
-    public async Task<Result> Execute(string email)
+    public async Task<Result> Handle(InitializePasswordResetCommand cmd)
     {
-        var account = await accountsRepository.FindByEmail(email);
+        var account = await accountsRepository.FindByEmail(cmd.Email);
 
         if (account is null)
         {

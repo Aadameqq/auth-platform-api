@@ -1,3 +1,4 @@
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
@@ -9,21 +10,21 @@ public class CreateAccountCommandHandler(
     PasswordHasher passwordHasher,
     ActivationCodesRepository activationCodesRepository,
     ActivationCodeEmailSender codeEmailSender
-)
+) : CommandHandler<CreateAccountCommand>
 {
-    public async Task<Result> Execute(string userName, string email, string plainPassword)
+    public async Task<Result> Handle(CreateAccountCommand cmd)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var found = await accountsRepository.FindByEmail(email);
+        var found = await accountsRepository.FindByEmail(cmd.Email);
 
         if (found != null)
         {
             return new AlreadyExists<Account>();
         }
 
-        var hashedPassword = passwordHasher.HashPassword(plainPassword);
+        var hashedPassword = passwordHasher.HashPassword(cmd.PlainPassword);
 
-        var account = new Account(userName, email, hashedPassword);
+        var account = new Account(cmd.UserName, cmd.Email, hashedPassword);
 
         await accountsRepository.Create(account);
 
