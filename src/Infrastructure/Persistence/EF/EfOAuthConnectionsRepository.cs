@@ -1,17 +1,27 @@
 using Core.Domain;
 using Core.Ports;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.EF;
 
 public class EfOAuthConnectionsRepository(DatabaseContext ctx) : OAuthConnectionsRepository
 {
-    public Task Create(OAuthConnection connection)
+    public async Task Create(OAuthConnection connection)
     {
-        throw new NotImplementedException();
+        await ctx.OAuthConnections.AddAsync(connection);
     }
 
     public Task<OAuthConnection?> Find(string oAuthId, string provider)
     {
-        throw new NotImplementedException();
+        return ctx.OAuthConnections.FirstOrDefaultAsync(c =>
+            c.OAuthId == oAuthId && c.Provider == provider
+        );
+    }
+
+    public Task<OAuthConnection?> Find(Guid accountId, string provider)
+    {
+        return ctx.OAuthConnections.FirstOrDefaultAsync(c =>
+            c.AccountId == accountId && c.Provider == provider
+        );
     }
 }

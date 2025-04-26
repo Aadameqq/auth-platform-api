@@ -8,6 +8,7 @@ namespace Infrastructure.Persistence.EF;
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<OAuthConnection> OAuthConnections { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -33,5 +33,7 @@ public static class DependenciesConfig
         services.AddSingleton<TokenService, SystemTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();
+
+        services.AddHttpClient();
     }
 }

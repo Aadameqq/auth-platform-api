@@ -2,5 +2,5 @@ namespace Core.Ports;
 
 public interface OAuthServiceFactory
 {
-    public OAuthService CreateInstance(string provider);
+    public OAuthService? CreateInstance(string provider);
 }
