@@ -9,7 +9,7 @@ public class SystemEmailSender(IOptions<SmtpOptions> smtpOptions) : EmailSender
 {
     public Task Send(string to, string subject, string body)
     {
-        var client = new SmtpClient(smtpOptions.Value.Host, smtpOptions.Value.Port);
+        using var client = new SmtpClient(smtpOptions.Value.Host, smtpOptions.Value.Port);
         client.EnableSsl = false;
         client.UseDefaultCredentials = false;
 
