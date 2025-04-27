@@ -1,4 +1,5 @@
 using Core.Ports;
+using Infrastructure.OAuth;
 using Infrastructure.Options;
 using Infrastructure.Other;
 using Infrastructure.Persistence.Dapper;
@@ -22,14 +23,15 @@ public static class DependenciesConfig
         });
 
         services.AddDbContext<DatabaseContext>();
+        services.AddTransient<UnitOfWork, EfUnitOfWork>();
         services.AddScoped<PasswordHasher, BCryptPasswordService>();
         services.AddScoped<PasswordVerifier, BCryptPasswordService>();
-        services.AddScoped<UnitOfWork, EfUnitOfWork>();
         services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<ActivationCodesRepository, RedisActivationCodesRepository>();
         services.AddScoped<PasswordResetCodesRepository, RedisPasswordResetCodesRepository>();
         services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
+        services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
         services.AddSingleton<TokenService, SystemTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();

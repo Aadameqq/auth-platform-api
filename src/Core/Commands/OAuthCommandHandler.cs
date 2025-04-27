@@ -21,9 +21,27 @@ public abstract class OAuthCommandHandler(
         }
 
         var service = factory.CreateInstance(state.Provider);
-        var providerToken = await service.ExchangeCodeForAccessToken(cmd.Code); // TODO: it can fail
 
-        return await service.GetUser(providerToken);
+        if (service is null)
+        {
+            return new InvalidOAuthProvider();
+        }
+
+        var providerToken = await service.ExchangeCodeForAccessToken(cmd.Code);
+
+        if (providerToken is null)
+        {
+            return new InvalidOAuthCode();
+        }
+
+        var user = await service.GetUser(providerToken.AccessToken);
+
+        if (user is null)
+        {
+            return new OAuthProviderConnectionFailure();
+        }
+
+        return user;
     }
 }
 
