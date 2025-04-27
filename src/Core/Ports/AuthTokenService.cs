@@ -4,7 +4,7 @@ using Core.Dtos;
 
 namespace Core.Ports;
 
-public interface TokenService
+public interface AuthTokenService
 {
     TokenPairOutput CreateTokenPair(Account account, Guid sessionId, Guid tokenId);
     Task<AccessTokenPayload?> FetchPayloadIfValid(string accessToken);

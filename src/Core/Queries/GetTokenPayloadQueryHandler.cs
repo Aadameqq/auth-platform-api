@@ -6,7 +6,7 @@ using Core.Queries.Queries;
 
 namespace Core.Queries;
 
-public class GetTokenPayloadQueryHandler(TokenService tokenService)
+public class GetTokenPayloadQueryHandler(AuthTokenService authTokenService)
     : QueryHandler<GetTokenPayloadQuery, AccessTokenPayload>
 {
     public async Task<Result<AccessTokenPayload>> Handle(
@@ -14,7 +14,7 @@ public class GetTokenPayloadQueryHandler(TokenService tokenService)
         CancellationToken _
     )
     {
-        var payload = await tokenService.FetchPayloadIfValid(query.AccessToken);
+        var payload = await authTokenService.FetchPayloadIfValid(query.AccessToken);
 
         if (payload is null)
         {

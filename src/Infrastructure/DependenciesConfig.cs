@@ -32,7 +32,8 @@ public static class DependenciesConfig
         services.AddScoped<PasswordResetCodesRepository, RedisPasswordResetCodesRepository>();
         services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
         services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
-        services.AddSingleton<TokenService, SystemTokenService>();
+        services.AddScoped<OAuthStateTokenService, SystemOAuthStateTokenService>();// TODO: why not singleton
+        services.AddSingleton<AuthTokenService, SystemAuthTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();
 

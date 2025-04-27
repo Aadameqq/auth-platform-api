@@ -7,13 +7,13 @@ using Core.Ports;
 namespace Core.Commands;
 
 public abstract class OAuthCommandHandler(
-    OAuthStateTokensService stateTokensService,
+    OAuthStateTokenService stateTokenService,
     OAuthServiceFactory factory
 )
 {
     protected async Task<Result<OAuthUser>> Authorize(OAuthCommand cmd)
     {
-        var state = await stateTokensService.FetchPayloadIfValid(cmd.StateToken);
+        var state = await stateTokenService.FetchPayloadIfValid(cmd.StateToken);
 
         if (state is null || state.Id != cmd.StateId)
         {
@@ -46,9 +46,9 @@ public abstract class OAuthCommandHandler(
 }
 
 public abstract class OAuthCommandHandler<TCommand, TOutput>(
-    OAuthStateTokensService stateTokensService,
+    OAuthStateTokenService stateTokenService,
     OAuthServiceFactory factory
-) : OAuthCommandHandler(stateTokensService, factory), CommandHandler<TCommand, TOutput>
+) : OAuthCommandHandler(stateTokenService, factory), CommandHandler<TCommand, TOutput>
     where TCommand : OAuthCommand<TOutput>
     where TOutput : class
 {
@@ -67,9 +67,9 @@ public abstract class OAuthCommandHandler<TCommand, TOutput>(
 }
 
 public abstract class OAuthCommandHandler<TCommand>(
-    OAuthStateTokensService stateTokensService,
+    OAuthStateTokenService stateTokenService,
     OAuthServiceFactory factory
-) : OAuthCommandHandler(stateTokensService, factory), CommandHandler<TCommand>
+) : OAuthCommandHandler(stateTokenService, factory), CommandHandler<TCommand>
     where TCommand : OAuthCommand
 {
     public async Task<Result> Handle(TCommand command, CancellationToken _)

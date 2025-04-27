@@ -11,7 +11,7 @@ public class GetTokenPayloadQueryHandlerTests
 {
     private readonly GetTokenPayloadQueryHandler queryHandler;
     private readonly AccessTokenPayload testPayload = new(Guid.Empty, Guid.Empty, Role.None);
-    private readonly Mock<TokenService> tokenServiceMock = new();
+    private readonly Mock<AuthTokenService> tokenServiceMock = new();
 
     private readonly string validToken = "token";
 

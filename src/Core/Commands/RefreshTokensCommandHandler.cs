@@ -9,13 +9,13 @@ namespace Core.Commands;
 public class RefreshTokensCommandHandler(
     UnitOfWork uow,
     DateTimeProvider dateTimeProvider,
-    TokenService tokenService
+    AuthTokenService authTokenService
 ) : CommandHandler<RefreshTokensCommand, TokenPairOutput>
 {
     public async Task<Result<TokenPairOutput>> Handle(RefreshTokensCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var payload = await tokenService.FetchRefreshTokenPayloadIfValid(cmd.Token);
+        var payload = await authTokenService.FetchRefreshTokenPayloadIfValid(cmd.Token);
 
         if (payload is null)
         {
@@ -38,7 +38,7 @@ public class RefreshTokensCommandHandler(
             return result.Exception;
         }
 
-        var pair = tokenService.CreateTokenPair(account, result.Value.SessionId, result.Value.Id);
+        var pair = authTokenService.CreateTokenPair(account, result.Value.SessionId, result.Value.Id);
 
         await accountsRepository.Update(account);
         await uow.Flush();

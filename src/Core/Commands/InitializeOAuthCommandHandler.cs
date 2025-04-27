@@ -8,7 +8,7 @@ using Core.Ports;
 namespace Core.Commands;
 
 public class InitializeOAuthCommandHandler(
-    OAuthStateTokensService tokensService,
+    OAuthStateTokenService tokenService,
     OAuthServiceFactory factory
 ) : CommandHandler<InitializeOAuthCommand, OAuthUrlOutput>
 {
@@ -18,7 +18,7 @@ public class InitializeOAuthCommandHandler(
     )
     {
         var state = new OAuthState(cmd.Provider);
-        var stateToken = await tokensService.Create(state);
+        var stateToken = tokenService.Create(state);
 
         var service = factory.CreateInstance(cmd.Provider);
 

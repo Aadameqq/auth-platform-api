@@ -5,7 +5,7 @@ using Core.Ports;
 
 namespace Core.Other;
 
-public class SessionCreatorImpl(DateTimeProvider dateTimeProvider, TokenService tokenService)
+public class SessionCreatorImpl(DateTimeProvider dateTimeProvider, AuthTokenService authTokenService)
     : SessionCreator
 {
     public Result<TokenPairOutput> CreateSession(Account account)
@@ -17,7 +17,7 @@ public class SessionCreatorImpl(DateTimeProvider dateTimeProvider, TokenService 
             return result.Exception;
         }
 
-        var tokenPair = tokenService.CreateTokenPair(
+        var tokenPair = authTokenService.CreateTokenPair(
             account,
             result.Value.SessionId,
             result.Value.Id

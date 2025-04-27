@@ -2,8 +2,8 @@ using Core.Dtos;
 
 namespace Core.Ports;
 
-public interface OAuthStateTokensService
+public interface OAuthStateTokenService
 {
-    public Task<string> Create(OAuthState state);
+    public string Create(OAuthState state);
     public Task<OAuthState?> FetchPayloadIfValid(string stateToken);
 }
