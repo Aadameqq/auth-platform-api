@@ -6,26 +6,23 @@ easy to develop, and highly customizable
 ## Quick Start
 
 ```bash
-docker-compose -f docker-compose.dev.yml up app
+npm run quick-start
 ```
 
 ## Development
-
-If on linux, you can use scripts.sh
-Otherwise:
 
 ### Running app
 
 Run app
 
 ```bash
-dotnet run --project ./src/Api/Api.csproj
+npm run start
 ```
 
 Run app in watch mode
 
 ```bash
-dotnet watch --project ./src/Api/Api.csproj
+npm run watch
 ```
 
 ### Other Services
@@ -33,7 +30,7 @@ dotnet watch --project ./src/Api/Api.csproj
 Run all services (db, redis, smtp, etc.)
 
 ```bash
-docker-compose -f docker-compose.dev.yml up database smtp redis
+npm run services
 ```
 
 ### Database
@@ -41,13 +38,13 @@ docker-compose -f docker-compose.dev.yml up database smtp redis
 Create migration
 
 ```bash
-dotnet ef migrations add MigrationName --project ./src/Infrastructure --startup-project ./src/Api
+npm run migration:create -- migration_name
 ```
 
 Apply migration
 
 ```bash
-dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api
+npm run migration:push
 ```
 
 ### Linting
@@ -55,12 +52,11 @@ dotnet ef database update --project ./src/Infrastructure --startup-project ./src
 Check code style
 
 ```bash
-dotnet format style --verify-no-changes
-dotnet format analyzers --verify-no-changes
+npm run style
 ```
 
 Check formatting
 
 ```bash
-dotnet csharpier . --check
+npm run style:csharpier
 ```
