@@ -10,7 +10,7 @@ namespace Api.Controllers;
 [ApiController]
 public class OAuthController(IMediator mediator) : ControllerBase
 {
-    [HttpGet("/o-auth/{provider}/url")]
+    [HttpGet("{provider}/url")]
     public async Task<ActionResult<GetOAuthUrlResponse>> Get(
         [FromQuery] string redirectUri,
         [FromRoute] string provider

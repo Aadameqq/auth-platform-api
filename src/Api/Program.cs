@@ -6,13 +6,7 @@ using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var customEnv = Environment.GetEnvironmentVariable("CUSTOM_APPSETTINGS");
-if (!string.IsNullOrEmpty(customEnv))
-{
-    builder.Configuration.AddJsonFile($"appsettings.{customEnv}.json", false, false);
-}
-
-builder.Services.ConfigureOptions();
+builder.ConfigureOptions();
 builder.Services.ConfigureInfrastructureDependencies();
 builder.Services.ConfigureCoreDependencies();
 builder.Services.ConfigureCors();

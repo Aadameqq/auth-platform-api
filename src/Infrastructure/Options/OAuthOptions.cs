@@ -14,5 +14,5 @@ public class OAuthOptions
     public required string GithubClientId { get; init; }
 
     [Required]
-    public required string GithubClientSecret { get; init; }
+    public required string GithubSecret { get; init; }
 }

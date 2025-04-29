@@ -19,8 +19,8 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
         var queryParams = new Dictionary<string, string>
         {
             ["client_id"] = options.Value.GithubClientId,
-            ["client_secret"] = options.Value.GithubClientSecret,
-            ["code"] = code,
+            ["client_secret"] = options.Value.GithubSecret,
+            ["code"] = code
         };
 
         var queryString = GenerateQueryString(queryParams);
@@ -78,7 +78,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
             ["client_id"] = options.Value.GithubClientId,
             ["redirect_uri"] = redirectUri,
             ["state"] = stateToken,
-            ["scope"] = "user",
+            ["scope"] = "user"
         };
 
         var queryString = GenerateQueryString(queryParams);

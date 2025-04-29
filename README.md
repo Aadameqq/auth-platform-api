@@ -5,11 +5,31 @@ easy to develop, and highly customizable
 
 ## Quick Start
 
+### Prerequisites
+- Docker
+
+### Steps
+1. Copy `.env.docker.example` file and rename copy to `.env.docker`
+2. (Optional) Fill `.env.docker` with valid secrets (only required for OAuth-related features).
+3. Run the following command
+```bash
+docker-compose -f docker-compose.dev.yml up app
+```
+Or if you have Node.js installed:
 ```bash
 npm run quick-start
 ```
+4. Open http://localhost/api-docs in your browser
 
 ## Development
+
+### Setup
+1. Secrets
+```bash
+dotnet user-secrets set "OAuth:GithubClientId" "<your-client-id>"
+dotnet user-secrets set "OAuth:GithubSecret" "<your-secret>"
+```
+Work in progress
 
 ### Running app
 
