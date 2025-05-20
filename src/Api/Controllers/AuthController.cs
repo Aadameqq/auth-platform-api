@@ -34,6 +34,33 @@ public class AuthController(IMediator mediator) : ControllerBase
         return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
     }
 
+    [HttpPost("oAuth")]
+    public async Task<ActionResult<TokenPairResponse>> LogInWithOAuth([FromBody] OAuthBody body)
+    {
+        var result = await mediator.Send(
+            new LogInWithOAuthCommand(body.StateToken, body.StateId, body.Code)
+        );
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                InvalidOAuthCode _ => ApiResponse.Forbid("Given code is invalid or has expired"),
+                InvalidState _ => ApiResponse.Forbid(),
+                InvalidOAuthProvider _ => ApiResponse.BadRequest("Invalid oAuth provider"),
+                OAuthProviderConnectionFailure _ => ApiResponse.ServiceUnavailable(
+                    "Failed to receive a valid response from the external provider"
+                ),
+                AccountNotActivated _ => ApiResponse.Unauthorized(
+                    "Account has not been activated yet"
+                ),
+                _ => throw result.Exception,
+            };
+        }
+
+        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
+    }
+
     [HttpDelete]
     [RequireAuth]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)

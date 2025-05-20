@@ -34,6 +34,11 @@ public static class ApiResponse
         return GenerateResponse(404, customMessage);
     }
 
+    public static ActionResult ServiceUnavailable(string customMessage = "ServiceUnavailable")
+    {
+        return GenerateResponse(503, customMessage);
+    }
+
     public static Task ApplyAsync(HttpContext ctx, ActionResult result)
     {
         return result.ExecuteResultAsync(new ActionContext { HttpContext = ctx });

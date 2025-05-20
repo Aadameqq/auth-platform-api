@@ -15,4 +15,7 @@ public class OAuthOptions
 
     [Required]
     public required string GithubSecret { get; init; }
+
+    [Required]
+    public required string OAuthRedirectUrl { get; init; }
 }

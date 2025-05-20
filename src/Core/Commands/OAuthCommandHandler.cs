@@ -11,11 +11,11 @@ public abstract class OAuthCommandHandler(
     OAuthServiceFactory factory
 )
 {
-    protected async Task<Result<OAuthUser>> Authorize(OAuthCommand cmd)
+    protected async Task<Result<OAuthUser>> Authorize(Guid stateId, string stateToken, string code)
     {
-        var state = await stateTokenService.FetchPayloadIfValid(cmd.StateToken);
+        var state = await stateTokenService.FetchPayloadIfValid(stateToken);
 
-        if (state is null || state.Id != cmd.StateId)
+        if (state is null || state.Id != stateId)
         {
             return new InvalidState();
         }
@@ -27,7 +27,7 @@ public abstract class OAuthCommandHandler(
             return new InvalidOAuthProvider();
         }
 
-        var providerToken = await service.ExchangeCodeForAccessToken(cmd.Code);
+        var providerToken = await service.ExchangeCodeForAccessToken(code);
 
         if (providerToken is null)
         {
@@ -54,7 +54,7 @@ public abstract class OAuthCommandHandler<TCommand, TOutput>(
 {
     public async Task<Result<TOutput>> Handle(TCommand command, CancellationToken _)
     {
-        var result = await Authorize(command);
+        var result = await Authorize(command.StateId, command.StateToken, command.Code);
         if (result.IsFailure)
         {
             return result.Exception;
@@ -74,7 +74,7 @@ public abstract class OAuthCommandHandler<TCommand>(
 {
     public async Task<Result> Handle(TCommand command, CancellationToken _)
     {
-        var result = await Authorize(command);
+        var result = await Authorize(command.StateId, command.StateToken, command.Code);
         if (result.IsFailure)
         {
             return result.Exception;

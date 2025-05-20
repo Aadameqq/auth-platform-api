@@ -39,5 +39,17 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 }
             );
         });
+
+        modelBuilder.Entity<OAuthConnection>(builder =>
+        {
+            builder.Property<Guid>("Id");
+            builder
+                .HasOne<Account>()
+                .WithMany()
+                .HasForeignKey("AccountId")
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property<string>("OAuthId");
+            builder.Property<string>("Provider");
+        });
     }
 }

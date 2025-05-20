@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Core.Dtos;
 using Core.Ports;
 using Infrastructure.Options;
@@ -20,7 +21,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
         {
             ["client_id"] = options.Value.GithubClientId,
             ["client_secret"] = options.Value.GithubSecret,
-            ["code"] = code
+            ["code"] = code,
         };
 
         var queryString = GenerateQueryString(queryParams);
@@ -36,11 +37,14 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
             return null;
         }
 
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        var tokenResponse = await response.Content.ReadFromJsonAsync<CodeExchangeResponse>();
 
-        var tokenResponse = await response.Content.ReadFromJsonAsync<OAuthProviderTokenPair>();
+        if (tokenResponse is null)
+        {
+            return null;
+        }
 
-        return tokenResponse;
+        return new OAuthProviderTokenPair(tokenResponse.AccessToken);
     }
 
     public async Task<OAuthUser?> GetUser(string accessToken)
@@ -50,12 +54,8 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            accessToken
-        );
 
         var response = await http.SendAsync(request);
 
@@ -71,14 +71,14 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
         return null;
     }
 
-    public string GenerateUrlFor(string stateToken, string redirectUri)
+    public string GenerateUrlFor(string stateToken)
     {
         var queryParams = new Dictionary<string, string>
         {
             ["client_id"] = options.Value.GithubClientId,
-            ["redirect_uri"] = redirectUri,
+            ["redirect_uri"] = options.Value.OAuthRedirectUrl,
             ["state"] = stateToken,
-            ["scope"] = "user"
+            ["scope"] = "user",
         };
 
         var queryString = GenerateQueryString(queryParams);
@@ -89,5 +89,17 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
     private static string GenerateQueryString(Dictionary<string, string> queryParams)
     {
         return string.Join('&', queryParams.Select(q => $"{q.Key}={q.Value}"));
+    }
+
+    private class CodeExchangeResponse
+    {
+        [JsonPropertyName("access_token")]
+        public required string AccessToken { get; init; }
+    }
+
+    private class UserResponse
+    {
+        [JsonPropertyName("login")]
+        public string Login { get; init; }
     }
 }

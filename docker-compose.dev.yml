@@ -20,7 +20,7 @@ services:
         environment:
             - POSTGRES_USER=testUser
             - POSTGRES_PASSWORD=testPassword
-            - POSTGRES_DB=survey-app
+            - POSTGRES_DB=contest-app
         ports:
             - "5432:5432"
         volumes:

@@ -27,7 +27,7 @@ public class InitializeOAuthCommandHandler(
             return new InvalidOAuthProvider();
         }
 
-        var url = service.GenerateUrlFor(stateToken, cmd.RedirectUri); // TODO: make url/uri naming consistent
+        var url = service.GenerateUrlFor(stateToken);
 
         return new OAuthUrlOutput(url, state.Id);
     }

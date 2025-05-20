@@ -13,4 +13,8 @@ public class OAuthConnection
         AccountId = account.Id;
         OAuthId = oAuthId;
     }
+
+#pragma warning disable CS8618
+    private OAuthConnection() { }
+#pragma warning restore CS8618
 }

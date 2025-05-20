@@ -23,7 +23,9 @@ public static class DependenciesConfig
         });
 
         services.AddDbContext<DatabaseContext>();
+
         services.AddTransient<UnitOfWork, EfUnitOfWork>();
+
         services.AddScoped<PasswordHasher, BCryptPasswordService>();
         services.AddScoped<PasswordVerifier, BCryptPasswordService>();
         services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
@@ -32,7 +34,8 @@ public static class DependenciesConfig
         services.AddScoped<PasswordResetCodesRepository, RedisPasswordResetCodesRepository>();
         services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
         services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
-        services.AddScoped<OAuthStateTokenService, SystemOAuthStateTokenService>();// TODO: why not singleton
+
+        services.AddSingleton<OAuthStateTokenService, SystemOAuthStateTokenService>();
         services.AddSingleton<AuthTokenService, SystemAuthTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();

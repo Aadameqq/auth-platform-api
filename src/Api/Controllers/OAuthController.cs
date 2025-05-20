@@ -12,11 +12,10 @@ public class OAuthController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{provider}/url")]
     public async Task<ActionResult<GetOAuthUrlResponse>> Get(
-        [FromQuery] string redirectUri,
         [FromRoute] string provider
     )
     {
-        var result = await mediator.Send(new InitializeOAuthCommand(redirectUri, provider));
+        var result = await mediator.Send(new InitializeOAuthCommand(provider));
 
         if (result is { IsFailure: true, Exception: InvalidOAuthProvider })
         {
