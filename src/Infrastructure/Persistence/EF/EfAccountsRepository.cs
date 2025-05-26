@@ -1,6 +1,5 @@
 using Core.Domain;
 using Core.Ports;
-using Infrastructure.Other;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.EF;
@@ -22,7 +21,7 @@ public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
         var found = await FindById(id);
         if (found is null)
         {
-            throw new EntitySearchFailure(); // TODO:
+            throw new EntitySearchFailure();
         }
 
         return found;
