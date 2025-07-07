@@ -72,8 +72,10 @@ public class AssignRoleCommandHandlerTests
     {
         await RunCommand(Guid.NewGuid(), existingAccount.Id, Role.Admin);
 
-        accountsRepositoryMock.Received().Update(Arg.Is<Account>(a => a.Id == existingAccount.Id));
-        unitOfWorkMock.Received().Flush();
+        await accountsRepositoryMock
+            .Received()
+            .Update(Arg.Is<Account>(a => a.Id == existingAccount.Id));
+        await unitOfWorkMock.Received().Flush();
     }
 
     private Task<Result> RunCommand(Guid issuerId, Guid accountId, Role role)
