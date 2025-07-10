@@ -27,7 +27,7 @@ public class LogInCommandHandler(
             return new NoPassword();
         }
 
-        if (!passwordVerifier.Verify(cmd.Password, account.Password))
+        if (!passwordVerifier.Verify(cmd.Password, account.Password!))
         {
             return new InvalidCredentials();
         }
