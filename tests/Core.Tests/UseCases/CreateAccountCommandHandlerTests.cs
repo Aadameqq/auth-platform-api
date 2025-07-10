@@ -1,128 +1,122 @@
-// using Core.Commands;
-// using Core.Domain;
-// using Core.Exceptions;
-// using Core.Ports;
-// using Moq;
-//
-// namespace Core.Tests.UseCases;
-//
-// public class CreateAccountCommandHandlerTests
-// {
-//     private readonly Mock<AccountsRepository> accountsRepositoryMock = new();
-//     private readonly Mock<ActivationCodesRepository> codesRepositoryMock = new();
-//     private readonly Mock<ActivationCodeEmailSender> emailSenderMock = new();
-//
-//     private readonly Account existingAccount = new("userName", "email", "password");
-//     private readonly string expectedCode = "code";
-//
-//     private readonly Mock<PasswordHasher> passwordHasherMock = new();
-//
-//     private readonly TestAccount testAccount = new("new-userName", "new-email", "new-password");
-//
-//     private readonly CreateAccountCommandHandler commandHandler;
-//
-//     public CreateAccountCommandHandlerTests()
-//     {
-//         commandHandler = new CreateAccountCommandHandler(
-//             accountsRepositoryMock.Object,
-//             passwordHasherMock.Object,
-//             codesRepositoryMock.Object,
-//             emailSenderMock.Object
-//         );
-//
-//         accountsRepositoryMock
-//             .Setup(x => x.FindByEmail(existingAccount.Email))
-//             .ReturnsAsync(existingAccount);
-//
-//         passwordHasherMock
-//             .Setup(x => x.HashPassword(It.IsAny<string>()))
-//             .Returns((string password) => password + "hash");
-//
-//         codesRepositoryMock.Setup(x => x.Create(It.IsAny<Account>())).ReturnsAsync(expectedCode);
-//     }
-//
-//     [Fact]
-//     public async Task WhenAccountWithGivenEmailAlreadyExists_ShouldFail()
-//     {
-//         var result = await commandHandler.Execute("test-username", existingAccount.Email, "test-password");
-//
-//         Assert.True(result.IsFailure);
-//         Assert.IsType<AlreadyExists<Account>>(result.Exception);
-//         AssertNoChanges();
-//     }
-//
-//     [Fact]
-//     public async Task WhenGivenEmailIsNotOccupied_ShouldSucceed()
-//     {
-//         var result = await commandHandler.Execute("new-userName", "new-email", "new-password");
-//
-//         Assert.True(result.IsSuccess);
-//     }
-//
-//     [Fact]
-//     public async Task WhenGivenEmailIsNotOccupied_ShouldPersistAccountWithCorrectData()
-//     {
-//         Account? actualAccount = null;
-//
-//         accountsRepositoryMock
-//             .Setup(x => x.Create(It.IsAny<Account>()))
-//             .Callback((Account a) => actualAccount = a);
-//
-//         await commandHandler.Execute(testAccount.UserName, testAccount.Email, testAccount.Password);
-//
-//         AssertExpectedAccount(actualAccount);
-//     }
-//
-//     [Fact]
-//     public async Task WhenGivenEmailIsNotOccupied_ShouldCreateCodeForCorrectAccount()
-//     {
-//         Account? actualAccount = null;
-//
-//         codesRepositoryMock
-//             .Setup(x => x.Create(It.IsAny<Account>()))
-//             .Callback((Account a) => actualAccount = a);
-//
-//         await commandHandler.Execute(testAccount.UserName, testAccount.Email, testAccount.Password);
-//
-//         AssertExpectedAccount(actualAccount);
-//     }
-//
-//     [Fact]
-//     public async Task WhenGivenEmailIsNotOccupied_ShouldSendEmailWithValidData()
-//     {
-//         Account? actualAccount = null;
-//         var actualCode = string.Empty;
-//
-//         emailSenderMock
-//             .Setup(x => x.Send(It.IsAny<Account>(), It.IsAny<string>()))
-//             .Callback(
-//                 (Account a, string c) =>
-//                 {
-//                     actualAccount = a;
-//                     actualCode = c;
-//                 }
-//             );
-//
-//         await commandHandler.Execute(testAccount.UserName, testAccount.Email, testAccount.Password);
-//
-//         AssertExpectedAccount(actualAccount);
-//         Assert.Same(expectedCode, actualCode);
-//     }
-//
-//     private void AssertExpectedAccount(Account? account)
-//     {
-//         Assert.NotNull(account);
-//         Assert.Equal(testAccount.UserName, account.UserName);
-//         Assert.Equal(testAccount.Email, account.Email);
-//         Assert.Equal(testAccount.Password + "hash", account.Password);
-//     }
-//
-//     private void AssertNoChanges()
-//     {
-//         accountsRepositoryMock.Verify(x => x.Flush(), Times.Never);
-//         codesRepositoryMock.Verify(x => x.Create(It.IsAny<Account>()), Times.Never);
-//         emailSenderMock.Verify(x => x.Send(It.IsAny<Account>(), It.IsAny<string>()), Times.Never);
-//     }
-//
-//     private record TestAccount(string UserName, string Email, string Password);
-// }
+using Core.Commands;
+using Core.Commands.Commands;
+using Core.Domain;
+using Core.Exceptions;
+using Core.Ports;
+using NSubstitute;
+
+namespace Core.Tests.UseCases;
+
+public class CreateAccountCommandHandlerTests
+{
+    private readonly AccountsRepository accountsRepositoryMock =
+        Substitute.For<AccountsRepository>();
+
+    private readonly ActivationCodesRepository codesRepositoryMock =
+        Substitute.For<ActivationCodesRepository>();
+
+    private readonly CreateAccountCommandHandler commandHandler;
+
+    private readonly ActivationCodeEmailSender emailSenderMock =
+        Substitute.For<ActivationCodeEmailSender>();
+
+    private readonly Account existingAccount = new("userName", "email", "password");
+    private readonly string expectedCode = "code";
+
+    private readonly PasswordHasher passwordHasherMock = Substitute.For<PasswordHasher>();
+
+    private readonly TestAccount testAccount = new("new-userName", "new-email", "new-password");
+    private readonly UnitOfWork uowMock = Substitute.For<UnitOfWork>();
+
+    public CreateAccountCommandHandlerTests()
+    {
+        commandHandler = new CreateAccountCommandHandler(
+            uowMock,
+            passwordHasherMock,
+            codesRepositoryMock,
+            emailSenderMock
+        );
+
+        uowMock.GetAccountsRepository().Returns(accountsRepositoryMock);
+
+        accountsRepositoryMock.FindByEmail(existingAccount.Email).Returns(existingAccount);
+
+        passwordHasherMock
+            .HashPassword(Arg.Any<string>())
+            .Returns(args => GenerateTestHash(args.Arg<string>()));
+
+        codesRepositoryMock.Create(Arg.Any<Account>()).Returns(expectedCode);
+    }
+
+    [Fact]
+    public async Task WhenAccountWithGivenEmailAlreadyExists_ShouldFail()
+    {
+        var result = await RunCommand("test-username", existingAccount.Email, "test-password");
+
+        Assert.True(result.IsFailure);
+        Assert.IsType<AlreadyExists<Account>>(result.Exception);
+        AssertNoChanges();
+    }
+
+    [Fact]
+    public async Task WhenGivenEmailIsNotOccupied_ShouldSucceed()
+    {
+        var result = await RunCommand("new-userName", "new-email", "new-password");
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task WhenGivenEmailIsNotOccupied_ShouldPersistAccountWithCorrectData()
+    {
+        await RunCommand(testAccount.UserName, testAccount.Email, testAccount.Password);
+
+        await accountsRepositoryMock.Received().Create(Arg.Is<Account>(a => IsExpectedAccount(a)));
+    }
+
+    [Fact]
+    public async Task WhenGivenEmailIsNotOccupied_ShouldCreateCodeForCorrectAccount()
+    {
+        await RunCommand(testAccount.UserName, testAccount.Email, testAccount.Password);
+
+        await codesRepositoryMock.Received().Create(Arg.Is<Account>(a => IsExpectedAccount(a)));
+    }
+
+    [Fact]
+    public async Task WhenGivenEmailIsNotOccupied_ShouldSendEmailWithValidData()
+    {
+        await RunCommand(testAccount.UserName, testAccount.Email, testAccount.Password);
+
+        await emailSenderMock
+            .Received()
+            .Send(Arg.Is<Account>(a => IsExpectedAccount(a)), Arg.Is(expectedCode));
+    }
+
+    private bool IsExpectedAccount(Account? account)
+    {
+        return account is not null
+               && account.UserName == testAccount.UserName
+               && account.Email == testAccount.Email
+               && account.Password == GenerateTestHash(testAccount.Password);
+    }
+
+    private void AssertNoChanges()
+    {
+        uowMock.DidNotReceive().Flush();
+        codesRepositoryMock.DidNotReceive().Create(Arg.Any<Account>());
+        emailSenderMock.DidNotReceive().Send(Arg.Any<Account>(), Arg.Any<string>());
+    }
+
+    private Task<Result> RunCommand(string userName, string email, string password)
+    {
+        var cmd = new CreateAccountCommand(userName, email, password);
+        return commandHandler.Handle(cmd, CancellationToken.None);
+    }
+
+    private string GenerateTestHash(string plainPassword)
+    {
+        return plainPassword + "hash";
+    }
+
+    private record TestAccount(string UserName, string Email, string Password);
+}
