@@ -1,82 +1,93 @@
-// using Core.Commands;
-// using Core.Domain;
-// using Core.Exceptions;
-// using Core.Ports;
-// using Moq;
-//
-// namespace Core.Tests.UseCases;
-//
-// public class ActivateAccountCommandHandlerTests
-// {
-//     private readonly Mock<AccountsRepository> accountsRepositoryMock = new();
-//     private readonly Mock<ActivationCodesRepository> activationCodesRepositoryMock = new();
-//
-//     private readonly ActivateAccountCommandHandler commandHandler;
-//
-//     private readonly Account existingAccount = new("userName", "email", "password");
-//     private readonly string existingCode = "123";
-//
-//     public ActivateAccountCommandHandlerTests()
-//     {
-//         commandHandler = new ActivateAccountCommandHandler(
-//             activationCodesRepositoryMock.Object,
-//             accountsRepositoryMock.Object
-//         );
-//
-//         activationCodesRepositoryMock
-//             .Setup(x => x.GetAccountIdAndRevokeCode(existingCode))
-//             .ReturnsAsync(existingAccount.Id);
-//
-//         accountsRepositoryMock
-//             .Setup(x => x.FindById(existingAccount.Id))
-//             .ReturnsAsync(existingAccount);
-//     }
-//
-//     [Fact]
-//     public async Task WhenCodeDoesNotExist_ShouldFail()
-//     {
-//         var result = await commandHandler.Execute("invalid-code");
-//
-//         Assert.True(result.IsFailure);
-//         Assert.IsType<NoSuch>(result.Exception);
-//         AssertNoChanges();
-//     }
-//
-//     [Fact]
-//     public async Task WhenUserAssignedToCodeDoesNotExist_ShouldFail()
-//     {
-//         activationCodesRepositoryMock
-//             .Setup(x => x.GetAccountIdAndRevokeCode(existingCode))
-//             .ReturnsAsync(Guid.Empty);
-//
-//         var result = await commandHandler.Execute(existingCode);
-//
-//         Assert.True(result.IsFailure);
-//         Assert.IsType<NoSuch<Account>>(result.Exception);
-//         AssertNoChanges();
-//     }
-//
-//     [Fact]
-//     public async Task WhenCodeIsValid_ShouldActivateAccountAndPersistIt()
-//     {
-//         Account? actualAccount = null;
-//
-//         accountsRepositoryMock
-//             .Setup(x => x.UpdateAndFlush(It.IsAny<Account>()))
-//             .Callback((Account account) => actualAccount = account);
-//
-//         var result = await commandHandler.Execute(existingCode);
-//
-//         Assert.True(result.IsSuccess);
-//         Assert.NotNull(actualAccount);
-//         Assert.Equal(existingAccount.Id, actualAccount.Id);
-//         Assert.True(actualAccount.HasBeenActivated());
-//     }
-//
-//     private void AssertNoChanges()
-//     {
-//         accountsRepositoryMock.Verify(x => x.UpdateAndFlush(It.IsAny<Account>()), Times.Never);
-//     }
-// }
+using Core.Commands;
+using Core.Commands.Commands;
+using Core.Domain;
+using Core.Exceptions;
+using Core.Ports;
+using NSubstitute;
 
+namespace Core.Tests.UseCases;
 
+public class ActivateAccountCommandHandlerTests
+{
+    private readonly AccountsRepository accountsRepositoryMock =
+        Substitute.For<AccountsRepository>();
+
+    private readonly ActivationCodesRepository activationCodesRepositoryMock =
+        Substitute.For<ActivationCodesRepository>();
+
+    private readonly ActivateAccountCommandHandler commandHandler;
+
+    private readonly Account existingAccount = new("userName", "email", "password");
+    private readonly string existingCode = "123";
+
+    private readonly UnitOfWork uowMock = Substitute.For<UnitOfWork>();
+
+    public ActivateAccountCommandHandlerTests()
+    {
+        commandHandler = new ActivateAccountCommandHandler(activationCodesRepositoryMock, uowMock);
+
+        activationCodesRepositoryMock
+            .GetAccountIdAndRevokeCode(existingCode)
+            .Returns(existingAccount.Id);
+
+        accountsRepositoryMock.FindById(existingAccount.Id).Returns(existingAccount);
+
+        uowMock.GetAccountsRepository().Returns(accountsRepositoryMock);
+    }
+
+    [Fact]
+    public async Task WhenCodeDoesNotExist_ShouldFail()
+    {
+        var result = await RunCommand("invalid-code");
+
+        Assert.True(result.IsFailure);
+        Assert.IsType<NoSuch>(result.Exception);
+        AssertNoChanges();
+    }
+
+    [Fact]
+    public async Task WhenUserAssignedToCodeDoesNotExist_ShouldFail()
+    {
+        accountsRepositoryMock.FindById(existingAccount.Id).Returns((Account)null!);
+
+        var result = await RunCommand(existingCode);
+
+        Assert.True(result.IsFailure);
+        Assert.IsType<NoSuch<Account>>(result.Exception);
+        AssertNoChanges();
+    }
+
+    [Fact]
+    public async Task WhenUserHasAlreadyActivated_ShouldFail()
+    {
+        existingAccount.Activate();
+        var result = await RunCommand(existingCode);
+
+        Assert.True(result.IsFailure);
+        Assert.IsType<NoSuch<Account>>(result.Exception);
+        AssertNoChanges();
+    }
+
+    [Fact]
+    public async Task WhenCodeIsValid_ShouldActivateAccountAndPersistIt()
+    {
+        var result = await RunCommand(existingCode);
+
+        Assert.True(result.IsSuccess);
+        await accountsRepositoryMock
+            .Received()
+            .Update(Arg.Is<Account>(a => a.Id == existingAccount.Id && a.HasBeenActivated()));
+    }
+
+    private void AssertNoChanges()
+    {
+        uowMock.DidNotReceive().Flush();
+        activationCodesRepositoryMock.DidNotReceive().Create(Arg.Any<Account>());
+    }
+
+    private Task<Result> RunCommand(string code)
+    {
+        var cmd = new ActivateAccountCommand(code);
+        return commandHandler.Handle(cmd, CancellationToken.None);
+    }
+}
