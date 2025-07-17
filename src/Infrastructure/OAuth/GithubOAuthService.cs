@@ -56,6 +56,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("Contest App"));
 
         var response = await http.SendAsync(request);
 
