@@ -1,8 +1,9 @@
-using Core.UseCases;
+using Core.Queries.Queries;
+using MediatR;
 
 namespace Api.Auth;
 
-public class JwtMiddleware(RequestDelegate next, GetAccountFromTokenUseCase tokenUseCase)
+public class JwtMiddleware(RequestDelegate next, IMediator mediator)
 {
     public async Task InvokeAsync(HttpContext ctx)
     {
@@ -26,7 +27,7 @@ public class JwtMiddleware(RequestDelegate next, GetAccountFromTokenUseCase toke
 
         var token = headerContent[tokenType.Length..];
 
-        var result = await tokenUseCase.Execute(token);
+        var result = await mediator.Send(new GetTokenPayloadQuery(token));
 
         if (result.IsFailure)
         {

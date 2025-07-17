@@ -8,6 +8,7 @@ namespace Infrastructure.Persistence.EF;
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<OAuthConnection> OAuthConnections { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -37,6 +38,18 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                     sessionBuilder.WithOwner().HasForeignKey("AccountId");
                 }
             );
+        });
+
+        modelBuilder.Entity<OAuthConnection>(builder =>
+        {
+            builder.Property<Guid>("Id");
+            builder
+                .HasOne<Account>()
+                .WithMany()
+                .HasForeignKey("AccountId")
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property<string>("OAuthId");
+            builder.Property<string>("Provider");
         });
     }
 }

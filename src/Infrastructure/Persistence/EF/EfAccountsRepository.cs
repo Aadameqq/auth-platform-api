@@ -16,6 +16,17 @@ public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
         return ctx.Accounts.FirstOrDefaultAsync(u => u.Id == id);
     }
 
+    public async Task<Account> FindByIdOrFail(Guid id)
+    {
+        var found = await FindById(id);
+        if (found is null)
+        {
+            throw new EntitySearchFailure();
+        }
+
+        return found;
+    }
+
     public async Task Create(Account account)
     {
         await ctx.Accounts.AddAsync(account);
@@ -25,16 +36,5 @@ public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
     {
         ctx.Accounts.Update(account);
         return Task.CompletedTask;
-    }
-
-    public async Task UpdateAndFlush(Account account)
-    {
-        await Update(account);
-        await Flush();
-    }
-
-    public async Task Flush()
-    {
-        await ctx.SaveChangesAsync();
     }
 }

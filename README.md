@@ -5,27 +5,44 @@ easy to develop, and highly customizable
 
 ## Quick Start
 
+### Prerequisites
+- Docker
+
+### Steps
+1. Copy `.env.docker.example` file and rename copy to `.env.docker`
+2. (Optional) Fill `.env.docker` with valid secrets (only required for OAuth-related features).
+3. Run the following command
 ```bash
 docker-compose -f docker-compose.dev.yml up app
 ```
+Or if you have Node.js installed:
+```bash
+npm run quick-start
+```
+4. Open http://localhost/api-docs in your browser
 
 ## Development
 
-If on linux, you can use scripts.sh
-Otherwise:
+### Setup
+1. Secrets
+```bash
+dotnet user-secrets set "OAuth:GithubClientId" "<your-client-id>"
+dotnet user-secrets set "OAuth:GithubSecret" "<your-secret>"
+```
+Work in progress
 
 ### Running app
 
 Run app
 
 ```bash
-dotnet run --project ./src/Api/Api.csproj
+npm run start
 ```
 
 Run app in watch mode
 
 ```bash
-dotnet watch --project ./src/Api/Api.csproj
+npm run watch
 ```
 
 ### Other Services
@@ -33,7 +50,7 @@ dotnet watch --project ./src/Api/Api.csproj
 Run all services (db, redis, smtp, etc.)
 
 ```bash
-docker-compose -f docker-compose.dev.yml up database smtp redis
+npm run services
 ```
 
 ### Database
@@ -41,13 +58,13 @@ docker-compose -f docker-compose.dev.yml up database smtp redis
 Create migration
 
 ```bash
-dotnet ef migrations add MigrationName --project ./src/Infrastructure --startup-project ./src/Api
+npm run migration:create -- migration_name
 ```
 
 Apply migration
 
 ```bash
-dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api
+npm run migration:push
 ```
 
 ### Linting
@@ -55,12 +72,11 @@ dotnet ef database update --project ./src/Infrastructure --startup-project ./src
 Check code style
 
 ```bash
-dotnet format style --verify-no-changes
-dotnet format analyzers --verify-no-changes
+npm run style
 ```
 
 Check formatting
 
 ```bash
-dotnet csharpier . --check
+npm run style:csharpier
 ```

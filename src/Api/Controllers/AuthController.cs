@@ -1,25 +1,22 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
 using Api.Dtos;
+using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.UseCases;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(
-    LogInUseCase logInUseCase,
-    LogOutUseCase logOutUseCase,
-    RefreshTokensUseCase refreshTokensUseCase
-) : ControllerBase
+public class AuthController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
     {
-        var result = await logInUseCase.Execute(body.Email, body.Password);
+        var result = await mediator.Send(new LogInCommand(body.Email, body.Password));
 
         if (result.IsFailure)
         {
@@ -37,11 +34,38 @@ public class AuthController(
         return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
     }
 
+    [HttpPost("oAuth")]
+    public async Task<ActionResult<TokenPairResponse>> LogInWithOAuth([FromBody] OAuthBody body)
+    {
+        var result = await mediator.Send(
+            new LogInWithOAuthCommand(body.StateToken, body.StateId, body.Code)
+        );
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                InvalidOAuthCode _ => ApiResponse.Forbid("Given code is invalid or has expired"),
+                InvalidState _ => ApiResponse.Forbid(),
+                InvalidOAuthProvider _ => ApiResponse.BadRequest("Invalid oAuth provider"),
+                OAuthProviderConnectionFailure _ => ApiResponse.ServiceUnavailable(
+                    "Failed to receive a valid response from the external provider"
+                ),
+                AccountNotActivated _ => ApiResponse.Unauthorized(
+                    "Account has not been activated yet"
+                ),
+                _ => throw result.Exception,
+            };
+        }
+
+        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
+    }
+
     [HttpDelete]
     [RequireAuth]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
-        var result = await logOutUseCase.Execute(authUser.UserId, authUser.SessionId);
+        var result = await mediator.Send(new LogOutCommand(authUser.UserId, authUser.SessionId));
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -56,7 +80,7 @@ public class AuthController(
         [FromBody] RefreshTokensBody body
     )
     {
-        var result = await refreshTokensUseCase.Execute(body.RefreshToken);
+        var result = await mediator.Send(new RefreshTokensCommand(body.RefreshToken));
 
         if (result.IsFailure)
         {

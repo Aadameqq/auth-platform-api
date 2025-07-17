@@ -14,6 +14,13 @@ public class Account
         Password = password;
     }
 
+    public Account(string userName, string email)
+    {
+        UserName = userName;
+        Email = email;
+        activated = true;
+    }
+
 #pragma warning disable CS8618
     private Account() { }
 #pragma warning restore CS8618
@@ -22,7 +29,7 @@ public class Account
     public Guid Id { get; } = Guid.NewGuid();
     public string UserName { get; private set; }
     public string Email { get; private set; }
-    public string Password { get; private set; }
+    public string? Password { get; private set; }
 
     public bool HasBeenActivated()
     {
@@ -34,8 +41,18 @@ public class Account
         activated = true;
     }
 
+    public bool HasPassword()
+    {
+        return Password is not null;
+    }
+
     public void ChangePassword(string newPasswordHash)
     {
+        if (Password is null)
+        {
+            return; // TODO:
+        }
+
         Password = newPasswordHash;
     }
 
@@ -120,6 +137,8 @@ public class Account
 
     public void ResetPassword(string newPasswordHash)
     {
+        if (Password is null) { }
+
         ChangePassword(newPasswordHash);
         DestroyAllSessions();
     }

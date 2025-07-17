@@ -1,0 +1,16 @@
+{
+  "name": "contest-app",
+  "version": "1.0.0",
+  "description": "A contest management platform that enables easy organization of programming competitions, designed to be convenient, easy to develop, and highly customizable",
+  "scripts": {
+    "quick-start": "docker-compose -f docker-compose.dev.yml up app",
+    "services": "docker-compose -f docker-compose.dev.yml up database smtp redis",
+    "start": "dotnet run --project ./src/Api/Api.csproj",
+    "watch": "dotnet watch --project ./src/Api/Api.csproj",
+    "migration:create": "node ./scripts/create-migration.js",
+    "migration:push": "dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api",
+    "style": "dotnet format style --verify-no-changes && dotnet format analyzers --verify-no-changes",
+    "style:csharpier": "dotnet csharpier . --check"
+  }
+}
+ 
