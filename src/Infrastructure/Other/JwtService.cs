@@ -10,6 +10,17 @@ public class JwtService(string stringKey, bool hasLifetime = true, int lifetimeI
     private readonly string issuer = "localhost";
     private readonly SymmetricSecurityKey signingKey = new(Encoding.UTF8.GetBytes(stringKey));
 
+    public static string GetClaim(ClaimsPrincipal principal, string claimType)
+    {
+        var claim = principal.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
+        if (claim is null)
+        {
+            throw new InvalidOperationException("No claim found for claim type");
+        }
+
+        return claim;
+    }
+
     public string SignToken(List<Claim> claims)
     {
         var now = DateTime.UtcNow;
@@ -37,7 +48,7 @@ public class JwtService(string stringKey, bool hasLifetime = true, int lifetimeI
             ValidateIssuer = true,
             ValidIssuer = issuer,
             ValidateAudience = false,
-            IssuerSigningKey = signingKey
+            IssuerSigningKey = signingKey,
         };
 
         try
@@ -53,16 +64,5 @@ public class JwtService(string stringKey, bool hasLifetime = true, int lifetimeI
         {
             return null;
         }
-    }
-
-    public static string GetClaim(ClaimsPrincipal principal, string claimType)
-    {
-        var claim = principal.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
-        if (claim is null)
-        {
-            throw new InvalidOperationException("No claim found for claim type");
-        }
-
-        return claim;
     }
 }

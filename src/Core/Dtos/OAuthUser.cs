@@ -6,6 +6,4 @@ public record OAuthUser(
     string Email,
     string Provider,
     bool IsEmailVerified
-)
-{
-}
+) { }

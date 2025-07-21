@@ -23,7 +23,7 @@ public class SystemOAuthStateTokenService(IOptions<OAuthOptions> options) : OAut
         var claims = new List<Claim>
         {
             new(StateIdClaimType, state.Id.ToString()),
-            new(ProviderClaimType, state.Provider)
+            new(ProviderClaimType, state.Provider),
         };
 
         return jwtService.SignToken(claims);

@@ -38,7 +38,11 @@ public class RefreshTokensCommandHandler(
             return result.Exception;
         }
 
-        var pair = authTokenService.CreateTokenPair(account, result.Value.SessionId, result.Value.Id);
+        var pair = authTokenService.CreateTokenPair(
+            account,
+            result.Value.SessionId,
+            result.Value.Id
+        );
 
         await accountsRepository.Update(account);
         await uow.Flush();

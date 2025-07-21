@@ -11,9 +11,7 @@ namespace Api.Controllers;
 public class OAuthController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{provider}/url")]
-    public async Task<ActionResult<GetOAuthUrlResponse>> Get(
-        [FromRoute] string provider
-    )
+    public async Task<ActionResult<GetOAuthUrlResponse>> Get([FromRoute] string provider)
     {
         var result = await mediator.Send(new InitializeOAuthCommand(provider));
 

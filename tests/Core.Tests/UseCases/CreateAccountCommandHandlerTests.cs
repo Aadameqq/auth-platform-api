@@ -95,9 +95,9 @@ public class CreateAccountCommandHandlerTests
     private bool IsExpectedAccount(Account? account)
     {
         return account is not null
-               && account.UserName == testAccount.UserName
-               && account.Email == testAccount.Email
-               && account.Password == GenerateTestHash(testAccount.Password);
+            && account.UserName == testAccount.UserName
+            && account.Email == testAccount.Email
+            && account.Password == GenerateTestHash(testAccount.Password);
     }
 
     private void AssertNoChanges()

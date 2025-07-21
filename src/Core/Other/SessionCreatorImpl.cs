@@ -5,8 +5,10 @@ using Core.Ports;
 
 namespace Core.Other;
 
-public class SessionCreatorImpl(DateTimeProvider dateTimeProvider, AuthTokenService authTokenService)
-    : SessionCreator
+public class SessionCreatorImpl(
+    DateTimeProvider dateTimeProvider,
+    AuthTokenService authTokenService
+) : SessionCreator
 {
     public Result<TokenPairOutput> CreateSession(Account account)
     {
