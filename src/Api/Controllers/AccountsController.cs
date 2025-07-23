@@ -42,7 +42,6 @@ public class AccountsController(IMediator mediator) : ControllerBase
         }
 
         return new GetAuthenticatedUserResponse(result.Value);
-        return Ok();
     }
 
     [HttpDelete("@me/password")]
