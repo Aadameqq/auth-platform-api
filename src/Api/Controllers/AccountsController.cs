@@ -3,7 +3,6 @@ using Api.Controllers.Dtos;
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Queries;
 using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +11,7 @@ namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountsController(
-    IMediator mediator,
-    GetCurrentAccountQueryHandler getCurrentAccountQueryHandler
-) : ControllerBase
+public class AccountsController(IMediator mediator) : ControllerBase
 {
     [HttpPost("")]
     public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
