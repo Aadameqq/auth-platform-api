@@ -33,6 +33,18 @@ public class AccountTests
     }
 
     [Fact]
+    public void ChangePassword_ShouldNotChangePassword_WhenAccountCreatedWithoutPassword()
+    {
+        var account = new Account("user-name", "password");
+
+        var newPassword = "new-password";
+
+        account.ChangePassword(newPassword);
+
+        Assert.NotEqual(newPassword, testAccount.Password);
+    }
+
+    [Fact]
     public void AssignRole_ShouldFail_WhenAccountAlreadyHasRole()
     {
         testAccount.AssignRole(Role.Admin, Guid.Empty);

@@ -50,7 +50,7 @@ public class Account
     {
         if (Password is null)
         {
-            return; // TODO:
+            return;
         }
 
         Password = newPasswordHash;
@@ -137,8 +137,6 @@ public class Account
 
     public void ResetPassword(string newPasswordHash)
     {
-        if (Password is null) { }
-
         ChangePassword(newPasswordHash);
         DestroyAllSessions();
     }
