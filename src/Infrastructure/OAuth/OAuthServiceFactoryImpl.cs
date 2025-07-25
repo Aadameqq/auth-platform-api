@@ -11,7 +11,7 @@ public class OAuthServiceFactoryImpl(IOptions<OAuthOptions> options, IHttpClient
     {
         return provider switch
         {
-            "github" => new GithubOAuthService(options, factory),
+            GithubOAuthService.ProviderName => new GithubOAuthService(options, factory),
             _ => null,
         };
     }

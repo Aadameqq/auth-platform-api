@@ -33,18 +33,26 @@ public class LogInWithOAuthCommandHandler(
 
     private async Task<Result<TokenPairOutput>> HandleAccountMissing(OAuthUser oAuthUser)
     {
+        if (!oAuthUser.IsEmailVerified)
+        {
+            return new OAuthEmailNotVerified();
+        }
+
+        var accountsRepository = uow.GetAccountsRepository();
+
+        var found = await accountsRepository.FindByEmail(oAuthUser.Email);
+
+        if (found is not null)
+        {
+            return new AlreadyExists<Account>();
+        }
+
         var account = new Account(oAuthUser.UserName, oAuthUser.Email);
         var connection = new OAuthConnection(account, oAuthUser.Provider, oAuthUser.OAuthId);
 
-        var accountsRepository = uow.GetAccountsRepository();
         var connectionsRepository = uow.GetOAuthConnectionsRepository();
 
         var result = sessionCreator.CreateSession(account);
-
-        if (result is { IsFailure: true, Exception: AccountNotActivated })
-        {
-            return result.Exception;
-        }
 
         await accountsRepository.Create(account);
         await connectionsRepository.Create(connection);

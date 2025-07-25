@@ -34,9 +34,14 @@ public static class ApiResponse
         return GenerateResponse(404, customMessage);
     }
 
-    public static ActionResult ServiceUnavailable(string customMessage = "ServiceUnavailable")
+    public static ActionResult ServiceUnavailable(string customMessage = "Service Unavailable")
     {
         return GenerateResponse(503, customMessage);
+    }
+
+    public static ActionResult UnprocessableEntity(string customMessage = "Unprocessable Entity")
+    {
+        return GenerateResponse(422, customMessage);
     }
 
     public static Task ApplyAsync(HttpContext ctx, ActionResult result)

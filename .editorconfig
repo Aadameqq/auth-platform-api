@@ -8,6 +8,7 @@ end_of_line = lf
 insert_final_newline = true
 indent_style = space
 indent_size = 4
+dotnet_diagnostic.SA1401.severity = none
 dotnet_diagnostic.SA1600.severity = none
 dotnet_diagnostic.SA1200.severity = none
 dotnet_diagnostic.SA1101.severity = none

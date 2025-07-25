@@ -12,10 +12,7 @@ public class InitializeOAuthCommandHandler(
     OAuthServiceFactory factory
 ) : CommandHandler<InitializeOAuthCommand, OAuthUrlOutput>
 {
-    public async Task<Result<OAuthUrlOutput>> Handle(
-        InitializeOAuthCommand cmd,
-        CancellationToken _
-    )
+    public Task<Result<OAuthUrlOutput>> Handle(InitializeOAuthCommand cmd, CancellationToken _)
     {
         var state = new OAuthState(cmd.Provider);
         var stateToken = tokenService.Create(state);
@@ -24,11 +21,11 @@ public class InitializeOAuthCommandHandler(
 
         if (service is null)
         {
-            return new InvalidOAuthProvider();
+            return Task.FromResult<Result<OAuthUrlOutput>>(new InvalidOAuthProvider());
         }
 
         var url = service.GenerateUrlFor(stateToken);
 
-        return new OAuthUrlOutput(url, state.Id);
+        return Task.FromResult<Result<OAuthUrlOutput>>(new OAuthUrlOutput(url, state.Id));
     }
 }

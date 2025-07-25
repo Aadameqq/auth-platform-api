@@ -1,5 +1,3 @@
 namespace Core.Exceptions;
 
-public class InvalidOAuthProvider : DomainException
-{
-}
+public class InvalidOAuthProvider : DomainException { }

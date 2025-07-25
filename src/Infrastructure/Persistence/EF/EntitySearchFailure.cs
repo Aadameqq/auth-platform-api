@@ -1,5 +1,3 @@
 namespace Infrastructure.Persistence.EF;
 
-public class EntitySearchFailure : Exception
-{
-}
+public class EntitySearchFailure : Exception { }

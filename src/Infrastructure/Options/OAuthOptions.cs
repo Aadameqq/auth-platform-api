@@ -5,6 +5,12 @@ namespace Infrastructure.Options;
 public class OAuthOptions
 {
     [Required]
+    public required string UserAgentName { get; init; }
+
+    [Required]
+    public required string UserAgentVersion { get; init; }
+
+    [Required]
     public required string StateTokenSecret { get; init; }
 
     [Required]

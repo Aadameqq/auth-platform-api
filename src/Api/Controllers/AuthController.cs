@@ -54,6 +54,12 @@ public class AuthController(IMediator mediator) : ControllerBase
                 AccountNotActivated _ => ApiResponse.Unauthorized(
                     "Account has not been activated yet"
                 ),
+                AlreadyExists<Account> => ApiResponse.Conflict(
+                    "Account with this email already exists"
+                ),
+                OAuthEmailNotVerified => ApiResponse.UnprocessableEntity(
+                    "Your email address is not verified with the oAuth provider. Please verify it in oAuth provider account to continue"
+                ),
                 _ => throw result.Exception,
             };
         }

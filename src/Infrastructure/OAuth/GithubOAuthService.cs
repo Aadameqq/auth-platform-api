@@ -11,6 +11,8 @@ namespace Infrastructure.OAuth;
 public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFactory clientFactory)
     : OAuthService
 {
+    public const string ProviderName = "github";
+
     public async Task<OAuthProviderTokenPair?> ExchangeCodeForAccessToken(string code)
     {
         var http = clientFactory.CreateClient();
@@ -39,12 +41,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
 
         var tokenResponse = await response.Content.ReadFromJsonAsync<CodeExchangeResponse>();
 
-        if (tokenResponse is null)
-        {
-            return null;
-        }
-
-        return new OAuthProviderTokenPair(tokenResponse.AccessToken);
+        return tokenResponse is null ? null : new OAuthProviderTokenPair(tokenResponse.AccessToken);
     }
 
     public async Task<OAuthUser?> GetUser(string accessToken)
@@ -54,9 +51,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("Contest App"));
+        ApplyUserEndpointHeaders(request, accessToken);
 
         var response = await http.SendAsync(request);
 
@@ -65,11 +60,43 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
             return null;
         }
 
-        var tokenResponse = await response.Content.ReadFromJsonAsync<OAuthProviderTokenPair>();
+        var userResponse = await response.Content.ReadFromJsonAsync<UserResponse>();
 
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        var emailUrl = "https://api.github.com/user/emails";
+        using var emailRequest = new HttpRequestMessage(HttpMethod.Get, emailUrl);
 
-        return null;
+        ApplyUserEndpointHeaders(emailRequest, accessToken);
+
+        response = await http.SendAsync(emailRequest);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        var emailsResponse = await response.Content.ReadFromJsonAsync<EmailResponse[]>();
+
+        if (emailsResponse is null)
+        {
+            return null;
+        }
+
+        var email = GetPrimaryEmail(emailsResponse);
+
+        if (email is null)
+        {
+            return null;
+        }
+
+        return userResponse is null
+            ? null
+            : new OAuthUser(
+                userResponse.Id.ToString(),
+                userResponse.Login,
+                email.Email,
+                ProviderName,
+                email.IsVerified
+            );
     }
 
     public string GenerateUrlFor(string stateToken)
@@ -79,7 +106,7 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
             ["client_id"] = options.Value.GithubClientId,
             ["redirect_uri"] = options.Value.OAuthRedirectUrl,
             ["state"] = stateToken,
-            ["scope"] = "user",
+            ["scope"] = "read:user user:email",
         };
 
         var queryString = GenerateQueryString(queryParams);
@@ -89,7 +116,32 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
 
     private static string GenerateQueryString(Dictionary<string, string> queryParams)
     {
-        return string.Join('&', queryParams.Select(q => $"{q.Key}={q.Value}"));
+        return string.Join(
+            '&',
+            queryParams.Select(q => $"{q.Key}={Uri.EscapeDataString(q.Value)}")
+        );
+    }
+
+    private void ApplyUserEndpointHeaders(HttpRequestMessage request, string accessToken)
+    {
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.UserAgent.Add(
+            new ProductInfoHeaderValue(options.Value.UserAgentName, options.Value.UserAgentVersion)
+        );
+    }
+
+    private EmailResponse? GetPrimaryEmail(EmailResponse[] emails)
+    {
+        foreach (var email in emails)
+        {
+            if (email is { IsPrimary: true })
+            {
+                return email;
+            }
+        }
+
+        return null;
     }
 
     private class CodeExchangeResponse
@@ -98,9 +150,27 @@ public class GithubOAuthService(IOptions<OAuthOptions> options, IHttpClientFacto
         public required string AccessToken { get; init; }
     }
 
+    private class EmailResponse
+    {
+        [JsonPropertyName("email")]
+        public required string Email { get; init; }
+
+        [JsonPropertyName("primary")]
+        public required bool IsPrimary { get; init; }
+
+        [JsonPropertyName("verified")]
+        public required bool IsVerified { get; init; }
+    }
+
     private class UserResponse
     {
+        [JsonPropertyName("id")]
+        public required int Id { get; init; }
+
         [JsonPropertyName("login")]
-        public string Login { get; init; }
+        public required string Login { get; init; }
+
+        [JsonPropertyName("email")]
+        public required string Email { get; init; }
     }
 }
