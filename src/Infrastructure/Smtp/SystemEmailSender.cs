@@ -20,7 +20,7 @@ public class SystemEmailSender(IOptions<SmtpOptions> smtpOptions) : EmailSender
         message.IsBodyHtml = true;
         message.Body = body;
 
-        client.SendAsync(message, null);
+        client.Send(message);
 
         return Task.CompletedTask;
     }
