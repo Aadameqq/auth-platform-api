@@ -7,7 +7,7 @@ namespace Infrastructure.Smtp;
 
 public class SystemEmailSender(IOptions<SmtpOptions> smtpOptions) : EmailSender
 {
-    public Task Send(string to, string subject, string body)
+    public async Task Send(string to, string subject, string body)
     {
         using var client = new SmtpClient(smtpOptions.Value.Host, smtpOptions.Value.Port);
         client.EnableSsl = false;
@@ -20,8 +20,6 @@ public class SystemEmailSender(IOptions<SmtpOptions> smtpOptions) : EmailSender
         message.IsBodyHtml = true;
         message.Body = body;
 
-        client.Send(message);
-
-        return Task.CompletedTask;
+        await client.SendMailAsync(message);
     }
 }
