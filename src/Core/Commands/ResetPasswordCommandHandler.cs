@@ -11,17 +11,33 @@ public class ResetPasswordCommandHandler(
     ConfirmationService confirmationService
 ) : RequireConfirmationCommandHandler<ResetPasswordCommand>(confirmationService)
 {
+    protected override async Task<Result<Account>> Prepare(ResetPasswordCommand cmd)
+    {
+        var confirmationCodeRepository = uow.GetConfirmationCodesRepository();
+        var accountsRepository = uow.GetAccountsRepository();
+        var foundCode = await confirmationCodeRepository.FindByCode(cmd.Code);
+
+        if (foundCode is null)
+        {
+            return new NoSuch();
+        }
+
+        var found = await accountsRepository.FindById(foundCode.OwnerId);
+
+        if (found is null)
+        {
+            return new NoSuch();
+        }
+
+        return found;
+    }
+
     protected override async Task<Result> HandleWithConfirmation(
         Account account,
         ResetPasswordCommand cmd
     )
     {
         var accountsRepository = uow.GetAccountsRepository();
-
-        if (!account.HasPassword())
-        {
-            return new NoPassword();
-        }
 
         var passwordHash = passwordHasher.HashPassword(cmd.NewPassword);
 

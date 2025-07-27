@@ -32,7 +32,7 @@ public class ConfirmationCode
 
     public bool IsCooldown(DateTime now)
     {
-        return now >= createdAt + LifeSpan;
+        return now <= createdAt + LifeSpan;
     }
 
     public bool IsOwner(Account owner)

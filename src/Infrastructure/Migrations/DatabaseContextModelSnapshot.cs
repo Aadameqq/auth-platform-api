@@ -66,9 +66,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("expiresAt")
+                    b.Property<DateTime>("createdAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("ExpiresAt");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("ownerId")
                         .HasColumnType("text")

@@ -33,7 +33,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 sessionBuilder =>
                 {
                     sessionBuilder.Property<Guid>("Id");
-                    sessionBuilder.Property<DateTime>("createdAt").HasColumnName("CreatedAt");
+                    sessionBuilder.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
                     sessionBuilder.Property<Guid>("AccountId").HasColumnName("AccountId");
                     sessionBuilder.Property<Guid>("currentTokenId").HasColumnName("CurrentTokenId");
                     sessionBuilder.WithOwner().HasForeignKey("AccountId");
@@ -61,7 +61,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 .Property(c => c.Action)
                 .HasConversion(action => action.Name, name => ConfirmableAction.ParseOrFail(name))
                 .HasColumnType("varchar(50)");
-            builder.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
+            builder.Property<DateTime>("createdAt").HasColumnName("CreatedAt");
             builder.Property(c => c.Code);
         });
     }

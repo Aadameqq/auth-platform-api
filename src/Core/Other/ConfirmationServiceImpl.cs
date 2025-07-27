@@ -49,7 +49,7 @@ public class ConfirmationServiceImpl(
     public async Task<Result<Account>> Confirm(
         string code,
         ConfirmableAction action,
-        Identity accountIdentity
+        Account account
     )
     {
         var codesRepository = uow.GetConfirmationCodesRepository();
@@ -64,8 +64,6 @@ public class ConfirmationServiceImpl(
         {
             return new Expired();
         }
-
-        var account = await accountIdentity.Get();
 
         if (account is null || !confirmationCode.IsOwner(account))
         {

@@ -3,7 +3,6 @@ using Api.Controllers.Dtos;
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Other;
 using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +11,7 @@ namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountsController(IMediator mediator, IdentityFactory identityFactory)
-    : ControllerBase
+public class AccountsController(IMediator mediator) : ControllerBase
 {
     [HttpPost("")]
     public async Task<ActionResult<TokenPairResponse>> Create([FromBody] CreateAccountBody body)
@@ -59,23 +57,24 @@ public class AccountsController(IMediator mediator, IdentityFactory identityFact
         [FromBody] InitializeResetPasswordBody body
     )
     {
-        var identity = identityFactory.CreateEmailIdentity(body.Email);
+        var result = await mediator.Send(new InitializePasswordResetCommand(body.Email));
 
-        var result = await mediator.Send(
-            new InitializeConfirmationCommand(identity, ConfirmableAction.PasswordReset)
-        );
-
-        if (result.IsSuccess)
+        if (result.IsFailure)
         {
-            return ApiResponse.Ok("Password reset email sent");
+            return result.Exception switch
+            {
+                TooManyAttempts => ApiResponse.Cooldown(),
+                NoPassword => ApiResponse.BadRequest(
+                    "Cannot reset password on non-password account"
+                ),
+                NoSuch<Account> => ApiResponse.BadRequest(
+                    "Account with given email does not exist"
+                ),
+                _ => throw result.Exception,
+            };
         }
 
-        if (result.Exception is TooManyAttempts)
-        {
-            return ApiResponse.Cooldown();
-        }
-
-        throw result.Exception;
+        return ApiResponse.Ok("Password reset email sent");
     }
 
     [HttpPost("@me/activation")]
@@ -83,11 +82,7 @@ public class AccountsController(IMediator mediator, IdentityFactory identityFact
     [OptionalActivation]
     public async Task<IActionResult> InitializeActivation([FromAuth] AuthorizedUser user)
     {
-        var identity = identityFactory.CreateIdIdentity(user.UserId);
-
-        var result = await mediator.Send(
-            new InitializeConfirmationCommand(identity, ConfirmableAction.AccountActivation)
-        );
+        var result = await mediator.Send(new InitializeAccountActivationCommand(user.UserId));
 
         if (result.IsSuccess)
         {
@@ -110,9 +105,7 @@ public class AccountsController(IMediator mediator, IdentityFactory identityFact
         [FromAuth] AuthorizedUser user
     )
     {
-        var identity = identityFactory.CreateIdIdentity(user.UserId);
-
-        var result = await mediator.Send(new ActivateAccountCommand(identity, code));
+        var result = await mediator.Send(new ActivateAccountCommand(user.UserId, code));
 
         if (result.IsFailure)
         {
@@ -133,11 +126,7 @@ public class AccountsController(IMediator mediator, IdentityFactory identityFact
         [FromRoute] string code
     )
     {
-        var identity = identityFactory.CreateCodeIdentity(code);
-
-        var result = await mediator.Send(
-            new ResetPasswordCommand(code, identity, body.NewPassword)
-        );
+        var result = await mediator.Send(new ResetPasswordCommand(code, body.NewPassword));
 
         if (result.IsFailure)
         {

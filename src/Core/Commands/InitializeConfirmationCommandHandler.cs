@@ -1,23 +1,25 @@
 using Core.Commands.Commands;
 using Core.Domain;
-using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class InitializeConfirmationCommandHandler(ConfirmationService confirmationService)
-    : CommandHandler<InitializeConfirmationCommand>
+public abstract class InitializeConfirmationCommandHandler<TCommand>(
+    ConfirmationService confirmationService
+) : CommandHandler<TCommand>
+    where TCommand : InitializeConfirmationCommand
 {
-    public async Task<Result> Handle(InitializeConfirmationCommand cmd, CancellationToken _)
+    public async Task<Result> Handle(TCommand cmd, CancellationToken cancellationToken)
     {
-        var account = await cmd.Identity.GetOrFail();
-        var result = await confirmationService.BeginConfirmation(account, cmd.Action);
+        var result = await Prepare(cmd);
 
-        if (result is { IsFailure: true, Exception: TooManyAttempts })
+        if (result.IsFailure)
         {
             return result.Exception;
         }
 
-        return Result.Success();
+        return await confirmationService.BeginConfirmation(result.Value, cmd.Action);
     }
+
+    protected abstract Task<Result<Account>> Prepare(TCommand command);
 }

@@ -1,9 +1,5 @@
 using Core.Domain;
-using Core.Ports;
 
 namespace Core.Commands.Commands;
 
-public record InitializeConfirmationCommand(Identity Identity, ConfirmableAction Action)
-    : Command
-{
-}
+public record InitializeConfirmationCommand(ConfirmableAction Action) : Command { }
