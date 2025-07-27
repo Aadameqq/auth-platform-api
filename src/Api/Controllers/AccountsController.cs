@@ -14,7 +14,7 @@ namespace Api.Controllers;
 public class AccountsController(IMediator mediator) : ControllerBase
 {
     [HttpPost("")]
-    public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
+    public async Task<ActionResult<TokenPairResponse>> Create([FromBody] CreateAccountBody body)
     {
         var result = await mediator.Send(
             new CreateAccountCommand(body.Username, body.Email, body.Password)
@@ -25,11 +25,12 @@ public class AccountsController(IMediator mediator) : ControllerBase
             return ApiResponse.Conflict("Account with given email already exists");
         }
 
-        return ApiResponse.Ok();
+        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
     }
 
     [HttpGet("@me")]
     [RequireAuth]
+    [OptionalActivation]
     public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated(
         [FromAuth] AuthorizedUser user
     )

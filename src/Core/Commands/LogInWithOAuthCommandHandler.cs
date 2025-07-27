@@ -70,11 +70,6 @@ public class LogInWithOAuthCommandHandler(
 
         var result = sessionCreator.CreateSession(account);
 
-        if (result is { IsFailure: true, Exception: AccountNotActivated })
-        {
-            return result.Exception;
-        }
-
         await accountsRepository.Update(account);
         await uow.Flush();
 
