@@ -12,23 +12,33 @@ public class EfConfirmationCodesRepository(DatabaseContext ctx) : ConfirmationCo
         await ctx.ConfirmationCodes.AddAsync(confirmationCode);
     }
 
-    public async Task<ConfirmationCode?> FindByCode(string code, ConfirmableAction action)
+    public Task<ConfirmationCode?> FindByCode(string code, ConfirmableAction action)
     {
-        return await ctx.ConfirmationCodes.FirstOrDefaultAsync(c =>
-            c.Code == code && c.Action == action
-        );
+        return ctx.ConfirmationCodes.FirstOrDefaultAsync(c => c.Code == code && c.Action == action);
     }
 
-    public async Task<ConfirmationCode?> FindByAccount(Account account, ConfirmableAction action)
+    public Task<ConfirmationCode?> FindByCode(string code)
     {
-        return await ctx.ConfirmationCodes.FirstOrDefaultAsync(c =>
+        return ctx.ConfirmationCodes.FirstOrDefaultAsync(c => c.Code == code);
+    }
+
+    public Task<ConfirmationCode?> FindByAccount(Account account, ConfirmableAction action)
+    {
+        return ctx.ConfirmationCodes.FirstOrDefaultAsync(c =>
             c.OwnerId == account.Id && c.Action == action
         );
     }
 
-    public async Task Delete(ConfirmationCode confirmationCode)
+    public Task Delete(ConfirmationCode confirmationCode)
     {
-        throw new NotImplementedException();
+        ctx.ConfirmationCodes.Remove(confirmationCode);
+        return Task.CompletedTask;
+    }
+
+    public Task Update(ConfirmationCode confirmationCode)
+    {
+        ctx.ConfirmationCodes.Update(confirmationCode);
+        return Task.CompletedTask;
     }
 
     public string GenerateCode()

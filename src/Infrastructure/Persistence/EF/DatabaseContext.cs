@@ -33,7 +33,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 sessionBuilder =>
                 {
                     sessionBuilder.Property<Guid>("Id");
-                    sessionBuilder.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
+                    sessionBuilder.Property<DateTime>("createdAt").HasColumnName("CreatedAt");
                     sessionBuilder.Property<Guid>("AccountId").HasColumnName("AccountId");
                     sessionBuilder.Property<Guid>("currentTokenId").HasColumnName("CurrentTokenId");
                     sessionBuilder.WithOwner().HasForeignKey("AccountId");

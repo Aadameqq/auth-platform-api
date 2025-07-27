@@ -14,6 +14,7 @@ public static class DependenciesConfig
         services.AddScoped<ListRolesQueryHandler>();
         services.AddScoped<SessionCreator, SessionCreatorImpl>();
         services.AddScoped<ConfirmationService, ConfirmationServiceImpl>();
+        services.AddScoped<IdentityFactory>();
 
         services.AddMediatR(cfg =>
         {

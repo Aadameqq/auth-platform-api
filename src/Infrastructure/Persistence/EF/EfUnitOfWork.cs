@@ -52,6 +52,19 @@ public class EfUnitOfWork(IOptions<DatabaseOptions> options) : UnitOfWork, IDisp
         return confirmationCodesRepository;
     }
 
+    public async Task<T> FailIfNull<T>(Func<Task<T?>> func)
+        where T : class
+    {
+        var result = await func();
+
+        if (result is null)
+        {
+            throw new EntitySearchFailure();
+        }
+
+        return result;
+    }
+
     public async Task Flush()
     {
         await ctx.SaveChangesAsync();

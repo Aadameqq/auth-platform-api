@@ -11,7 +11,7 @@ public abstract class RequireConfirmationCommandHandler<TCommand>(
 {
     public async Task<Result> Handle(TCommand cmd, CancellationToken cancellationToken)
     {
-        var result = await confirmationService.Confirm(cmd.Code, cmd.Action, cmd.AccountId);
+        var result = await confirmationService.Confirm(cmd.Code, cmd.Action, cmd.AccountIdentity);
 
         if (result.IsFailure)
         {

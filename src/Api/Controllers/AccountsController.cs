@@ -3,6 +3,7 @@ using Api.Controllers.Dtos;
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
+using Core.Other;
 using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,8 @@ namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountsController(IMediator mediator) : ControllerBase
+public class AccountsController(IMediator mediator, IdentityFactory identityFactory)
+    : ControllerBase
 {
     [HttpPost("")]
     public async Task<ActionResult<TokenPairResponse>> Create([FromBody] CreateAccountBody body)
@@ -20,9 +22,16 @@ public class AccountsController(IMediator mediator) : ControllerBase
             new CreateAccountCommand(body.Username, body.Email, body.Password)
         );
 
-        if (result is { IsFailure: true, Exception: AlreadyExists<Account> })
+        if (result.IsFailure)
         {
-            return ApiResponse.Conflict("Account with given email already exists");
+            return result.Exception switch
+            {
+                AlreadyExists<Account> _ => ApiResponse.Conflict(
+                    "Account with given email already exists"
+                ),
+                TooManyAttempts _ => ApiResponse.Cooldown(),
+                _ => throw result.Exception,
+            };
         }
 
         return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
@@ -45,58 +54,99 @@ public class AccountsController(IMediator mediator) : ControllerBase
         return new GetAuthenticatedUserResponse(result.Value);
     }
 
-    [HttpDelete("@me/confirmation")]
-    [RequireAuth]
-    [OptionalActivation]
+    [HttpDelete("@me/password")]
     public async Task<IActionResult> InitializeResetPassword(
-        [FromBody] InitializeConfirmationBody body,
-        [FromAuth] AuthorizedUser user
+        [FromBody] InitializeResetPasswordBody body
     )
     {
+        var identity = identityFactory.CreateEmailIdentity(body.Email);
+
         var result = await mediator.Send(
-            new InitializeConfirmationCommand(user.UserId, body.Action)
+            new InitializeConfirmationCommand(identity, ConfirmableAction.PasswordReset)
         );
 
-        if (result is { IsFailure: true, Exception: NoSuch<Account> })
+        if (result.IsSuccess)
         {
-            return ApiResponse.NotFound();
+            return ApiResponse.Ok("Password reset email sent");
         }
 
-        return ApiResponse.Ok("Password reset email sent");
+        if (result.Exception is TooManyAttempts)
+        {
+            return ApiResponse.Cooldown();
+        }
+
+        throw result.Exception;
+    }
+
+    [HttpPost("@me/activation")]
+    [RequireAuth]
+    [OptionalActivation]
+    public async Task<IActionResult> InitializeActivation([FromAuth] AuthorizedUser user)
+    {
+        var identity = identityFactory.CreateIdIdentity(user.UserId);
+
+        var result = await mediator.Send(
+            new InitializeConfirmationCommand(identity, ConfirmableAction.AccountActivation)
+        );
+
+        if (result.IsSuccess)
+        {
+            return ApiResponse.Ok("Activation email sent");
+        }
+
+        if (result.Exception is TooManyAttempts)
+        {
+            return ApiResponse.Cooldown();
+        }
+
+        throw result.Exception;
     }
 
     [HttpPost("@me/activation/{code}")]
-    public async Task<IActionResult> Activate([FromRoute] string code)
+    [RequireAuth]
+    [OptionalActivation]
+    public async Task<IActionResult> Activate(
+        [FromRoute] string code,
+        [FromAuth] AuthorizedUser user
+    )
     {
-        // var result = await mediator.Send(new ConfirmActionCommand(code));
-        //
-        // if (result.IsFailure)
-        // {
-        //     return result.Exception switch
-        //     {
-        //         NoSuch<Account> _ => ApiResponse.NotFound(),
-        //         NoSuch _ => ApiResponse.NotFound(),
-        //         _ => throw result.Exception,
-        //     };
-        // }
+        var identity = identityFactory.CreateIdIdentity(user.UserId);
+
+        var result = await mediator.Send(new ActivateAccountCommand(identity, code));
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                NoSuch _ => ApiResponse.NotFound("Code not found"),
+                Expired _ => ApiResponse.Timeout("Given code has already expired"),
+                _ => throw result.Exception,
+            };
+        }
 
         return ApiResponse.Ok("Account activated");
     }
 
-    [HttpDelete("@me/password")]
-    [RequireAuth]
+    [HttpDelete("@me/password/{code}")]
     public async Task<IActionResult> ResetPassword(
         [FromBody] ResetPasswordBody body,
-        [FromAuth] AuthorizedUser user
+        [FromRoute] string code
     )
     {
+        var identity = identityFactory.CreateCodeIdentity(code);
+
         var result = await mediator.Send(
-            new ResetPasswordCommand(body.Code, user.UserId, body.NewPassword)
+            new ResetPasswordCommand(code, identity, body.NewPassword)
         );
 
-        if (result is { IsFailure: true, Exception: NoSuch })
+        if (result.IsFailure)
         {
-            return ApiResponse.NotFound();
+            return result.Exception switch
+            {
+                NoSuch _ => ApiResponse.NotFound("Code not found"),
+                Expired _ => ApiResponse.Timeout("Given code has already expired"),
+                _ => throw result.Exception,
+            };
         }
 
         return ApiResponse.Ok();

@@ -1,21 +1,22 @@
 using Core.Commands.Commands;
 using Core.Domain;
+using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class InitializeConfirmationCommandHandler(
-    ConfirmationService confirmationService,
-    UnitOfWork uow
-) : CommandHandler<InitializeConfirmationCommand>
+public class InitializeConfirmationCommandHandler(ConfirmationService confirmationService)
+    : CommandHandler<InitializeConfirmationCommand>
 {
     public async Task<Result> Handle(InitializeConfirmationCommand cmd, CancellationToken _)
     {
-        var accountRepository = uow.GetAccountsRepository();
+        var account = await cmd.Identity.GetOrFail();
+        var result = await confirmationService.BeginConfirmation(account, cmd.Action);
 
-        var found = await accountRepository.FindByIdOrFail(cmd.AccountId);
-
-        await confirmationService.BeginConfirmation(found, cmd.Action);
+        if (result is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return result.Exception;
+        }
 
         return Result.Success();
     }

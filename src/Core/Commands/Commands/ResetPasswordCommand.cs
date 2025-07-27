@@ -1,6 +1,7 @@
 using Core.Domain;
+using Core.Ports;
 
 namespace Core.Commands.Commands;
 
-public record ResetPasswordCommand(string Code, Guid AccountId, string NewPassword)
-    : RequireConfirmationCommand(Code, AccountId, ConfirmableAction.PasswordReset);
+public record ResetPasswordCommand(string Code, Identity AccountIdentity, string NewPassword)
+    : RequireConfirmationCommand(Code, AccountIdentity, ConfirmableAction.PasswordReset);

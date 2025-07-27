@@ -27,6 +27,17 @@ public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
         return found;
     }
 
+    public async Task<Account> FindByEmailOrFail(string email)
+    {
+        var found = await FindByEmail(email);
+        if (found is null)
+        {
+            throw new EntitySearchFailure();
+        }
+
+        return found;
+    }
+
     public async Task Create(Account account)
     {
         await ctx.Accounts.AddAsync(account);

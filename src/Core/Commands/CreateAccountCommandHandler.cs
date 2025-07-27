@@ -27,7 +27,15 @@ public class CreateAccountCommandHandler(
 
         var account = new Account(cmd.UserName, cmd.Email, hashedPassword);
 
-        await confirmationService.BeginConfirmation(account, ConfirmableAction.AccountActivation);
+        var beginResult = await confirmationService.BeginConfirmation(
+            account,
+            ConfirmableAction.AccountActivation
+        );
+
+        if (beginResult is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return beginResult.Exception;
+        }
 
         var result = sessionCreator.CreateSession(account);
 
