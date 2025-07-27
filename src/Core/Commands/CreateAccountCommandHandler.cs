@@ -9,8 +9,7 @@ namespace Core.Commands;
 public class CreateAccountCommandHandler(
     UnitOfWork uow,
     PasswordHasher passwordHasher,
-    ActivationCodesRepository activationCodesRepository,
-    ActivationCodeEmailSender codeEmailSender,
+    ConfirmationService confirmationService,
     SessionCreator sessionCreator
 ) : CommandHandler<CreateAccountCommand, TokenPairOutput>
 {
@@ -28,9 +27,7 @@ public class CreateAccountCommandHandler(
 
         var account = new Account(cmd.UserName, cmd.Email, hashedPassword);
 
-        var code = await activationCodesRepository.Create(account);
-
-        await codeEmailSender.Send(account, code);
+        await confirmationService.BeginConfirmation(account, ConfirmableAction.AccountActivation);
 
         var result = sessionCreator.CreateSession(account);
 

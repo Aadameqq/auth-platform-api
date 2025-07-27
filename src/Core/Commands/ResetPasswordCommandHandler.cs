@@ -8,24 +8,19 @@ namespace Core.Commands;
 public class ResetPasswordCommandHandler(
     PasswordHasher passwordHasher,
     UnitOfWork uow,
-    PasswordResetCodesRepository passwordResetCodesRepository
-) : CommandHandler<ResetPasswordCommand>
+    ConfirmationService confirmationService
+) : RequireConfirmationCommandHandler<ResetPasswordCommand>(confirmationService)
 {
-    public async Task<Result> Handle(ResetPasswordCommand cmd, CancellationToken _)
+    protected override async Task<Result> HandleWithConfirmation(
+        Account account,
+        ResetPasswordCommand cmd
+    )
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(cmd.ResetCode);
 
-        if (accountId is null)
+        if (!account.HasPassword())
         {
-            return new NoSuch();
-        }
-
-        var account = await accountsRepository.FindById(accountId.Value);
-
-        if (account is null)
-        {
-            return new NoSuch();
+            return new NoPassword();
         }
 
         var passwordHash = passwordHasher.HashPassword(cmd.NewPassword);

@@ -45,12 +45,17 @@ public class AccountsController(IMediator mediator) : ControllerBase
         return new GetAuthenticatedUserResponse(result.Value);
     }
 
-    [HttpDelete("@me/password")]
+    [HttpDelete("@me/confirmation")]
+    [RequireAuth]
+    [OptionalActivation]
     public async Task<IActionResult> InitializeResetPassword(
-        [FromBody] InitializeResetPasswordBody body
+        [FromBody] InitializeConfirmationBody body,
+        [FromAuth] AuthorizedUser user
     )
     {
-        var result = await mediator.Send(new InitializePasswordResetCommand(body.Email));
+        var result = await mediator.Send(
+            new InitializeConfirmationCommand(user.UserId, body.Action)
+        );
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
@@ -63,28 +68,31 @@ public class AccountsController(IMediator mediator) : ControllerBase
     [HttpPost("@me/activation/{code}")]
     public async Task<IActionResult> Activate([FromRoute] string code)
     {
-        var result = await mediator.Send(new ActivateAccountCommand(code));
-
-        if (result.IsFailure)
-        {
-            return result.Exception switch
-            {
-                NoSuch<Account> _ => ApiResponse.NotFound(),
-                NoSuch _ => ApiResponse.NotFound(),
-                _ => throw result.Exception,
-            };
-        }
+        // var result = await mediator.Send(new ConfirmActionCommand(code));
+        //
+        // if (result.IsFailure)
+        // {
+        //     return result.Exception switch
+        //     {
+        //         NoSuch<Account> _ => ApiResponse.NotFound(),
+        //         NoSuch _ => ApiResponse.NotFound(),
+        //         _ => throw result.Exception,
+        //     };
+        // }
 
         return ApiResponse.Ok("Account activated");
     }
 
-    [HttpDelete("@me/password/{code}")]
+    [HttpDelete("@me/password")]
+    [RequireAuth]
     public async Task<IActionResult> ResetPassword(
-        [FromRoute] string code,
-        [FromBody] ResetPasswordBody body
+        [FromBody] ResetPasswordBody body,
+        [FromAuth] AuthorizedUser user
     )
     {
-        var result = await mediator.Send(new ResetPasswordCommand(code, body.NewPassword));
+        var result = await mediator.Send(
+            new ResetPasswordCommand(body.Code, user.UserId, body.NewPassword)
+        );
 
         if (result is { IsFailure: true, Exception: NoSuch })
         {
