@@ -16,7 +16,7 @@ public class ConfirmableAction
         Name = name;
     }
 
-    public static List<ConfirmableAction> Actions { get; } = [];
+    private static List<ConfirmableAction> Actions { get; } = [];
 
     public string Name { get; }
 

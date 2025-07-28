@@ -66,7 +66,7 @@ public class LogInWithOAuthCommandHandler(
     {
         var accountsRepository = uow.GetAccountsRepository();
 
-        var account = await accountsRepository.FindByIdOrFail(connection.AccountId);
+        var account = await uow.FailIfNull(() => accountsRepository.FindById(connection.AccountId));
 
         var result = sessionCreator.CreateSession(account);
 
