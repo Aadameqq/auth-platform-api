@@ -5,11 +5,11 @@ namespace Core.Domain;
 public class ConfirmationCode
 {
     public readonly ConfirmableAction Action;
-    private readonly DateTime createdAt;
     public readonly Guid Id = Guid.NewGuid();
     public readonly TimeSpan LifeSpan = TimeSpan.FromMinutes(60);
     public readonly Guid OwnerId;
     public readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
+    private DateTime createdAt;
 
 #pragma warning disable CS8618
     private ConfirmationCode() { }
@@ -32,7 +32,7 @@ public class ConfirmationCode
 
     public bool IsCooldown(DateTime now)
     {
-        return now <= createdAt + LifeSpan;
+        return now <= createdAt + Timeout;
     }
 
     public bool IsOwner(Account owner)
@@ -53,6 +53,7 @@ public class ConfirmationCode
         }
 
         Code = code;
+        createdAt = now;
         return Result.Success();
     }
 }

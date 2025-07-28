@@ -60,14 +60,17 @@ public class ConfirmationServiceImpl(
             return new NoSuch();
         }
 
-        if (confirmationCode.HasExpired(dateTimeProvider.Now()))
-        {
-            return new Expired();
-        }
-
         if (account is null || !confirmationCode.IsOwner(account))
         {
             return new NoSuch();
+        }
+
+        await codesRepository.Delete(confirmationCode);
+        await uow.Flush();
+
+        if (confirmationCode.HasExpired(dateTimeProvider.Now()))
+        {
+            return new Expired();
         }
 
         return account;

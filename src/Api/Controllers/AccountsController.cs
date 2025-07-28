@@ -84,17 +84,17 @@ public class AccountsController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new InitializeAccountActivationCommand(user.UserId));
 
-        if (result.IsSuccess)
+        if (result.IsFailure)
         {
-            return ApiResponse.Ok("Activation email sent");
+            return result.Exception switch
+            {
+                TooManyAttempts => ApiResponse.Cooldown(),
+                AlreadyActivated => ApiResponse.Forbid("Account already activated"),
+                _ => throw result.Exception,
+            };
         }
 
-        if (result.Exception is TooManyAttempts)
-        {
-            return ApiResponse.Cooldown();
-        }
-
-        throw result.Exception;
+        return ApiResponse.Ok("Activation email sent");
     }
 
     [HttpPost("@me/activation/{code}")]
@@ -117,7 +117,7 @@ public class AccountsController(IMediator mediator) : ControllerBase
             };
         }
 
-        return ApiResponse.Ok("Account activated");
+        return ApiResponse.Ok("Account activated. Please refresh your access token");
     }
 
     [HttpDelete("@me/password/{code}")]

@@ -56,7 +56,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
         modelBuilder.Entity<ConfirmationCode>(builder =>
         {
             builder.Property<Guid>("Id");
-            builder.Property<string>("ownerId").HasColumnName("OwnerId");
+            builder.Property(c => c.OwnerId);
             builder
                 .Property(c => c.Action)
                 .HasConversion(action => action.Name, name => ConfirmableAction.ParseOrFail(name))

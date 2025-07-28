@@ -1,5 +1,6 @@
 using Core.Commands.Commands;
 using Core.Domain;
+using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
@@ -14,7 +15,10 @@ public class InitializeAccountActivationCommandHandler(
         var accountsRepository = uow.GetAccountsRepository();
         var account = await uow.FailIfNull(() => accountsRepository.FindById(cmd.Id));
 
-        // TODO: logic
+        if (account.HasBeenActivated())
+        {
+            return new AlreadyActivated();
+        }
 
         return account;
     }
