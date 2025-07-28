@@ -19,7 +19,6 @@ public class CreateAccountCommandHandlerTests
         Substitute.For<ConfirmationService>();
 
     private readonly Account existingAccount = new("userName", "email", "password");
-    private readonly string expectedCode = "code";
 
     private readonly PasswordHasher passwordHasherMock = Substitute.For<PasswordHasher>();
 

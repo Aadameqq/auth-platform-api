@@ -11,10 +11,6 @@ public class ConfirmationCode
     public readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
     private DateTime createdAt;
 
-#pragma warning disable CS8618
-    private ConfirmationCode() { }
-#pragma warning restore CS8618
-
     public ConfirmationCode(Account owner, string code, DateTime now, ConfirmableAction action)
     {
         OwnerId = owner.Id;
@@ -22,6 +18,10 @@ public class ConfirmationCode
         Code = code;
         Action = action;
     }
+
+#pragma warning disable CS8618
+    private ConfirmationCode() { }
+#pragma warning restore CS8618
 
     public string Code { get; private set; }
 

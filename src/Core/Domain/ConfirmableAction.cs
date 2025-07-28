@@ -16,9 +16,9 @@ public class ConfirmableAction
         Name = name;
     }
 
-    private static List<ConfirmableAction> Actions { get; } = [];
-
     public string Name { get; }
+
+    private static List<ConfirmableAction> Actions { get; } = [];
 
     public static bool TryParse(string name, out ConfirmableAction action)
     {
