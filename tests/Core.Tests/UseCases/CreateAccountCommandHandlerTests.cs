@@ -3,6 +3,7 @@ using Core.Commands.Commands;
 using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Exceptions;
+using Core.Other;
 using Core.Ports;
 using NSubstitute;
 
@@ -15,8 +16,8 @@ public class CreateAccountCommandHandlerTests
 
     private readonly CreateAccountCommandHandler commandHandler;
 
-    private readonly ConfirmationService confirmationServiceMock =
-        Substitute.For<ConfirmationService>();
+    private readonly EmailConfirmationProvider confirmationProviderMock =
+        Substitute.For<EmailConfirmationProvider>();
 
     private readonly Account existingAccount = new("userName", "email", "password");
 
@@ -33,7 +34,7 @@ public class CreateAccountCommandHandlerTests
         commandHandler = new CreateAccountCommandHandler(
             uowMock,
             passwordHasherMock,
-            confirmationServiceMock,
+            confirmationProviderMock,
             sessionCreatorMock
         );
 
@@ -77,12 +78,9 @@ public class CreateAccountCommandHandlerTests
     {
         await RunCommand(testAccount.UserName, testAccount.Email, testAccount.Password);
 
-        await confirmationServiceMock
+        await confirmationProviderMock
             .Received()
-            .BeginConfirmation(
-                Arg.Is<Account>(a => IsExpectedAccount(a)),
-                ConfirmableAction.AccountActivation
-            );
+            .Begin(ConfirmableAction.AccountActivation, Arg.Is<Account>(a => IsExpectedAccount(a)));
     }
 
     private bool IsExpectedAccount(Account? account)

@@ -11,7 +11,7 @@ public class EfUnitOfWork(IOptions<DatabaseOptions> options) : UnitOfWork, IDisp
     private readonly bool disposed = false;
 
     private AccountsRepository? accountsRepository;
-    private ConfirmationCodesRepository? confirmationCodesRepository;
+    private ConfirmationsRepository? confirmationCodesRepository;
     private OAuthConnectionsRepository? oAuthConnectionsRepository;
 
     public void Dispose()
@@ -42,11 +42,11 @@ public class EfUnitOfWork(IOptions<DatabaseOptions> options) : UnitOfWork, IDisp
         return oAuthConnectionsRepository;
     }
 
-    public ConfirmationCodesRepository GetConfirmationCodesRepository()
+    public ConfirmationsRepository GetConfirmationsRepository()
     {
         if (confirmationCodesRepository is null)
         {
-            confirmationCodesRepository = new EfConfirmationCodesRepository(ctx);
+            confirmationCodesRepository = new EfConfirmationsRepository(ctx);
         }
 
         return confirmationCodesRepository;

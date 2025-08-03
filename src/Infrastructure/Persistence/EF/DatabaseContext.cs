@@ -9,7 +9,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
 {
     public DbSet<Account> Accounts { get; set; }
     public DbSet<OAuthConnection> OAuthConnections { get; set; }
-    public DbSet<ConfirmationCode> ConfirmationCodes { get; set; }
+    public DbSet<Confirmation> Confirmations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -53,13 +53,23 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
             builder.Property<string>("Provider");
         });
 
-        modelBuilder.Entity<ConfirmationCode>(builder =>
+        modelBuilder.Entity<Confirmation>(b =>
         {
-            builder.Property<Guid>("Id");
-            builder.Property(c => c.OwnerId);
-            builder.Property(c => c.Action).HasColumnType("varchar(50)");
-            builder.Property<DateTime>("createdAt").HasColumnName("CreatedAt");
-            builder.Property(c => c.Code);
+            b.HasKey(c => c.Id);
+
+            b.Property(c => c.OwnerId).IsRequired();
+            b.HasOne<Account>()
+                .WithMany()
+                .HasForeignKey(c => c.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Property(c => c.Action).HasConversion<string>().IsUnicode().IsRequired();
+
+            b.Property(c => c.Method).HasConversion<string>().IsUnicode().IsRequired();
+
+            b.Property(c => c.Code).IsUnicode(false).IsRequired(false);
+
+            b.Property<DateTime>("createdAt").HasColumnName("CreatedAt").IsRequired();
         });
     }
 }

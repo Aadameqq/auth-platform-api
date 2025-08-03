@@ -1,3 +1,3 @@
 namespace Api.Controllers.Dtos;
 
-public record ResetPasswordBody(string NewPassword);
+public record ResetPasswordBody(Guid ConfirmationId, string NewPassword);

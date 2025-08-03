@@ -4,5 +4,5 @@ namespace Core.Ports;
 
 public interface ConfirmationCodeEmailSender
 {
-    public Task Send(Account account, ConfirmationCode confirmationCode);
+    public Task Send(Account account, Confirmation confirmation);
 }

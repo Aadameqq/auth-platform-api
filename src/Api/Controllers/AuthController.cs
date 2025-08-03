@@ -76,6 +76,29 @@ public class AuthController(IMediator mediator) : ControllerBase
         return ApiResponse.Ok();
     }
 
+    [HttpPost("confirmation")]
+    [RequireAuth]
+    [OptionalActivation]
+    public async Task<IActionResult> BeginConfirmation(
+        [FromAuth] AuthorizedUser authUser,
+        [FromBody] CreateConfirmationBody body
+    )
+    {
+        var result = await mediator.Send(
+            new BeginConfirmationCommand(authUser.UserId, body.Action, body.Method)
+        );
+
+        if (result is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return ApiResponse.Cooldown();
+        }
+
+        return ApiResponse.Custom(
+            200,
+            new { message = "Initialized confirmation", confirmationId = result.Value.Id }
+        );
+    }
+
     [HttpPut]
     public async Task<ActionResult<TokenPairResponse>> RefreshTokens(
         [FromBody] RefreshTokensBody body

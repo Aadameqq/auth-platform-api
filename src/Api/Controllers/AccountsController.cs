@@ -4,7 +4,6 @@ using Api.Controllers.Dtos;
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Other;
 using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -76,14 +75,19 @@ public class AccountsController(IMediator mediator) : ControllerBase
             };
         }
 
-        return ApiResponse.Ok("Password reset email sent");
+        var confirmation = result.Value;
+
+        return ApiResponse.Custom(
+            200,
+            new { message = "Password reset email sent", confirmationId = confirmation.Id }
+        );
     }
 
     [HttpPost("@me/activation")]
     [RequireAuth]
     [OptionalActivation]
     [EnsureHasNotBeenActivated]
-    [RequireConfirmation(ConfirmationMethod.Email, ConfirmableAction.AccountActivation)]
+    [RequireConfirmation(ConfirmableAction.AccountActivation, ConfirmationMethod.Email)]
     public async Task<IActionResult> Activate([FromAuth] AuthorizedUser user)
     {
         var result = await mediator.Send(new ActivateAccountCommand(user.UserId));
@@ -102,14 +106,19 @@ public class AccountsController(IMediator mediator) : ControllerBase
         [FromRoute] string code
     )
     {
-        var result = await mediator.Send(new ResetPasswordCommand(code, body.NewPassword));
+        var result = await mediator.Send(
+            new ResetPasswordCommand(body.ConfirmationId, code, body.NewPassword)
+        );
 
         if (result.IsFailure)
         {
             return result.Exception switch
             {
-                NoSuch _ => ApiResponse.NotFound("Code not found"),
-                Expired _ => ApiResponse.Timeout("Given code has already expired"),
+                NoSuch or ConfirmationMismatch => ApiResponse.NotFound(
+                    "Code assigned to given confirmation id, method and action was not found"
+                ),
+                InvalidConfirmationCode => ApiResponse.Unauthorized("Invalid code"),
+                Expired => ApiResponse.Timeout("Given code has already expired"),
                 _ => throw result.Exception,
             };
         }

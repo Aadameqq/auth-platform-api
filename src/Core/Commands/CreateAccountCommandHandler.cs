@@ -9,7 +9,7 @@ namespace Core.Commands;
 public class CreateAccountCommandHandler(
     UnitOfWork uow,
     PasswordHasher passwordHasher,
-    ConfirmationService confirmationService,
+    EmailConfirmationProvider confirmationProvider,
     SessionCreator sessionCreator
 ) : CommandHandler<CreateAccountCommand, TokenPairOutput>
 {
@@ -27,20 +27,20 @@ public class CreateAccountCommandHandler(
 
         var account = new Account(cmd.UserName, cmd.Email, hashedPassword);
 
-        var beginResult = await confirmationService.BeginConfirmation(
-            account,
-            ConfirmableAction.AccountActivation
+        var result = sessionCreator.CreateSession(account);
+
+        await accountsRepository.Create(account);
+        await uow.Flush();
+
+        var beginResult = await confirmationProvider.Begin(
+            ConfirmableAction.AccountActivation,
+            account
         );
 
         if (beginResult is { IsFailure: true, Exception: TooManyAttempts })
         {
             return beginResult.Exception;
         }
-
-        var result = sessionCreator.CreateSession(account);
-
-        await accountsRepository.Create(account);
-        await uow.Flush();
 
         return result;
     }

@@ -1,8 +1,7 @@
-namespace Core.Other;
+namespace Core.Domain;
 
 public enum ConfirmationMethod
 {
     Email,
     Totp,
-    Preference,
 }

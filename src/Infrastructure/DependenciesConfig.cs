@@ -30,7 +30,6 @@ public static class DependenciesConfig
         services.AddScoped<ConfirmationCodeEmailSender, ConfirmationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
-        services.AddScoped<ConfirmationCodesRepository, EfConfirmationCodesRepository>();
         services.AddScoped<ConfirmationCodeEmailSender, ConfirmationCodeEmailSenderImpl>();
 
         services.AddSingleton<OAuthStateTokenService, SystemOAuthStateTokenService>();

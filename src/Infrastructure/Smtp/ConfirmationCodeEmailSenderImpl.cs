@@ -5,12 +5,12 @@ namespace Infrastructure.Smtp;
 
 public class ConfirmationCodeEmailSenderImpl(EmailSender emailSender) : ConfirmationCodeEmailSender
 {
-    public Task Send(Account account, ConfirmationCode code)
+    public Task Send(Account account, Confirmation code)
     {
         return emailSender.Send(account.Email, "Action Confirmation", GetBody(account, code));
     }
 
-    private string GetBody(Account account, ConfirmationCode code)
+    private string GetBody(Account account, Confirmation code)
     {
         var html = File.ReadAllText(
             Path.Combine(

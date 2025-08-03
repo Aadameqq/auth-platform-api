@@ -4,8 +4,10 @@ public interface UnitOfWork
 {
     AccountsRepository GetAccountsRepository();
     OAuthConnectionsRepository GetOAuthConnectionsRepository();
-    ConfirmationCodesRepository GetConfirmationCodesRepository();
+    ConfirmationsRepository GetConfirmationsRepository();
+
     Task<T> FailIfNull<T>(Func<Task<T?>> func)
         where T : class;
+
     Task Flush();
 }
