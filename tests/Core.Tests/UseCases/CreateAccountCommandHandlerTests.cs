@@ -3,7 +3,6 @@ using Core.Commands.Commands;
 using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Other;
 using Core.Ports;
 using NSubstitute;
 
@@ -41,6 +40,22 @@ public class CreateAccountCommandHandlerTests
         uowMock.GetAccountsRepository().Returns(accountsRepositoryMock);
 
         accountsRepositoryMock.FindByEmail(existingAccount.Email).Returns(existingAccount);
+
+        confirmationProviderMock
+            .Begin(ConfirmableAction.AccountActivation, Arg.Is<Account>(a => IsExpectedAccount(a)))
+            .Returns(
+                new Confirmation(
+                    existingAccount,
+                    DateTime.MinValue,
+                    ConfirmableAction.AccountActivation,
+                    ConfirmationMethod.Email,
+                    null
+                )
+            );
+
+        sessionCreatorMock
+            .CreateSession(Arg.Is<Account>(a => IsExpectedAccount(a)))
+            .Returns(new TokenPairOutput("access", "refresh"));
 
         passwordHasherMock
             .HashPassword(Arg.Any<string>())

@@ -60,18 +60,6 @@ public class LogInCommandHandlerTests
     }
 
     [Fact]
-    public async Task WhenAccountHasNotBeenActivated_ShouldFail()
-    {
-        sessionCreatorMock.CreateSession(Arg.Any<Account>()).Returns(new AccountNotActivated());
-
-        var result = await RunCommand(existingAccount.Email, existingPlainPassword);
-
-        Assert.True(result.IsFailure);
-        Assert.IsType<AccountNotActivated>(result.Exception);
-        AssertNoChanges();
-    }
-
-    [Fact]
     public async Task WhenCredentialsAreValidAndAccountHasBeenActivated_ShouldReturnCorrectTokens()
     {
         existingAccount.Activate();

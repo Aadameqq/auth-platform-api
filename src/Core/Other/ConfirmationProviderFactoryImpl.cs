@@ -17,7 +17,7 @@ public class ConfirmationProviderFactoryImpl(
                 confirmationService
             ),
             ConfirmationMethod.Totp => new TotpConfirmationProvider(confirmationService),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 }

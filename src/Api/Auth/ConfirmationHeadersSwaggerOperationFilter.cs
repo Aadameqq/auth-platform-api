@@ -8,14 +8,18 @@ public class ConfirmationHeadersSwaggerOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        if (context.ApiDescription.ActionDescriptor is not ControllerActionDescriptor actionDescriptor)
+        if (
+            context.ApiDescription.ActionDescriptor
+            is not ControllerActionDescriptor actionDescriptor
+        )
         {
             return;
         }
 
-        var hasAttrOnMethod = actionDescriptor
-            .MethodInfo.GetCustomAttributes(typeof(RequireConfirmationAttribute), true)
-            .Length != 0;
+        var hasAttrOnMethod =
+            actionDescriptor
+                .MethodInfo.GetCustomAttributes(typeof(RequireConfirmationAttribute), true)
+                .Length != 0;
 
         if (!hasAttrOnMethod)
         {
@@ -33,7 +37,7 @@ public class ConfirmationHeadersSwaggerOperationFilter : IOperationFilter
                 {
                     Name = header,
                     In = ParameterLocation.Header,
-                    Schema = new OpenApiSchema { Type = "string" }
+                    Schema = new OpenApiSchema { Type = "string" },
                 }
             );
         }
