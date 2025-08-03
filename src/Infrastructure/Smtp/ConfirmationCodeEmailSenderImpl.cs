@@ -23,7 +23,7 @@ public class ConfirmationCodeEmailSenderImpl(EmailSender emailSender) : Confirma
 
         html = html.Replace("{userName}", account.UserName);
         html = html.Replace("{code}", code.Code);
-        html = html.Replace("{action}", code.Action.Name);
+        html = html.Replace("{action}", code.Action.ToString());
         html = html.Replace("{life}", code.LifeSpan.ToString());
 
         return html;

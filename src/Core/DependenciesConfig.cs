@@ -13,7 +13,8 @@ public static class DependenciesConfig
         services.AddScoped<GetCurrentAccountQueryHandler>();
         services.AddScoped<ListRolesQueryHandler>();
         services.AddScoped<SessionCreator, SessionCreatorImpl>();
-        services.AddScoped<ConfirmationService, EmailConfirmationService>();
+        services.AddScoped<ConfirmationService, EmailConfirmationService>(); // TODO:
+        services.AddScoped<ConfirmationServiceFactory, ConfirmationServiceFactory>();
 
         services.AddMediatR(cfg =>
         {
