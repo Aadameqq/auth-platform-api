@@ -4,5 +4,5 @@ public enum Role
 {
     Admin,
     ProblemsCreator,
-    None
+    None,
 }
