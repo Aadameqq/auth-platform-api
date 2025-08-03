@@ -1,4 +1,5 @@
 using Core.Commands.Commands;
+using Core.Commands.Outputs;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Ports;
@@ -8,11 +9,11 @@ namespace Core.Commands;
 public class CreateAccountCommandHandler(
     UnitOfWork uow,
     PasswordHasher passwordHasher,
-    ActivationCodesRepository activationCodesRepository,
-    ActivationCodeEmailSender codeEmailSender
-) : CommandHandler<CreateAccountCommand>
+    EmailConfirmationProvider confirmationProvider,
+    SessionCreator sessionCreator
+) : CommandHandler<CreateAccountCommand, TokenPairOutput>
 {
-    public async Task<Result> Handle(CreateAccountCommand cmd, CancellationToken _)
+    public async Task<Result<TokenPairOutput>> Handle(CreateAccountCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
         var found = await accountsRepository.FindByEmail(cmd.Email);
@@ -26,14 +27,21 @@ public class CreateAccountCommandHandler(
 
         var account = new Account(cmd.UserName, cmd.Email, hashedPassword);
 
+        var result = sessionCreator.CreateSession(account);
+
         await accountsRepository.Create(account);
-
-        var code = await activationCodesRepository.Create(account);
-
-        await codeEmailSender.Send(account, code);
-
         await uow.Flush();
 
-        return Result.Success();
+        var beginResult = await confirmationProvider.Begin(
+            ConfirmableAction.AccountActivation,
+            account
+        );
+
+        if (beginResult is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return beginResult.Exception;
+        }
+
+        return result;
     }
 }

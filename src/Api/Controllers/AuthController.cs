@@ -24,9 +24,6 @@ public class AuthController(IMediator mediator) : ControllerBase
             {
                 NoSuch<Account> _ => ApiResponse.Unauthorized(),
                 InvalidCredentials _ => ApiResponse.Unauthorized(),
-                AccountNotActivated _ => ApiResponse.Unauthorized(
-                    "Account has not been activated yet"
-                ),
                 _ => throw result.Exception,
             };
         }
@@ -51,9 +48,6 @@ public class AuthController(IMediator mediator) : ControllerBase
                 OAuthProviderConnectionFailure _ => ApiResponse.ServiceUnavailable(
                     "Failed to receive a valid response from the external provider"
                 ),
-                AccountNotActivated _ => ApiResponse.Unauthorized(
-                    "Account has not been activated yet"
-                ),
                 AlreadyExists<Account> => ApiResponse.Conflict(
                     "Account with this email already exists"
                 ),
@@ -69,6 +63,7 @@ public class AuthController(IMediator mediator) : ControllerBase
 
     [HttpDelete]
     [RequireAuth]
+    [OptionalActivation]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
         var result = await mediator.Send(new LogOutCommand(authUser.UserId, authUser.SessionId));
@@ -79,6 +74,29 @@ public class AuthController(IMediator mediator) : ControllerBase
         }
 
         return ApiResponse.Ok();
+    }
+
+    [HttpPost("confirmation")]
+    [RequireAuth]
+    [OptionalActivation]
+    public async Task<IActionResult> BeginConfirmation(
+        [FromAuth] AuthorizedUser authUser,
+        [FromBody] CreateConfirmationBody body
+    )
+    {
+        var result = await mediator.Send(
+            new BeginConfirmationCommand(authUser.UserId, body.Action, body.Method)
+        );
+
+        if (result is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return ApiResponse.Cooldown();
+        }
+
+        return ApiResponse.Custom(
+            200,
+            new { message = "Initialized confirmation", confirmationId = result.Value.Id }
+        );
     }
 
     [HttpPut]

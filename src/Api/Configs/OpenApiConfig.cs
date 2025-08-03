@@ -1,3 +1,4 @@
+using Api.Auth;
 using Microsoft.OpenApi.Models;
 
 namespace Api.Configs;
@@ -43,6 +44,7 @@ public static class OpenApiConfig
             options.AddSecurityDefinition("Bearer", securityScheme);
             options.AddSecurityRequirement(securityRequirement);
             options.SwaggerDoc("docs", info);
+            options.OperationFilter<ConfirmationHeadersSwaggerOperationFilter>();
         });
     }
 

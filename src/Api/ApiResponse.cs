@@ -14,6 +14,18 @@ public static class ApiResponse
         return GenerateResponse(401, customMessage);
     }
 
+    public static ActionResult Timeout(string customMessage = "Timeout")
+    {
+        return GenerateResponse(408, customMessage);
+    }
+
+    public static ActionResult Cooldown(
+        string customMessage = "Too many attempts. Please wait a bit before trying again"
+    )
+    {
+        return GenerateResponse(429, customMessage);
+    }
+
     public static ActionResult Conflict(string customMessage = "Conflict")
     {
         return GenerateResponse(409, customMessage);
@@ -42,6 +54,11 @@ public static class ApiResponse
     public static ActionResult UnprocessableEntity(string customMessage = "Unprocessable Entity")
     {
         return GenerateResponse(422, customMessage);
+    }
+
+    public static ActionResult Custom(int statusCode, object content)
+    {
+        return new JsonResult(content) { StatusCode = statusCode };
     }
 
     public static Task ApplyAsync(HttpContext ctx, ActionResult result)

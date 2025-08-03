@@ -52,6 +52,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("Core.Domain.Confirmation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .IsUnicode(true)
+                        .HasColumnType("text");
+
+                    b.Property<string>("Code")
+                        .IsUnicode(false)
+                        .HasColumnType("text");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .IsUnicode(true)
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Confirmations");
+                });
+
             modelBuilder.Entity("Core.Domain.OAuthConnection", b =>
                 {
                     b.Property<Guid>("Id")
@@ -105,6 +139,15 @@ namespace Infrastructure.Migrations
                         });
 
                     b.Navigation("sessions");
+                });
+
+            modelBuilder.Entity("Core.Domain.Confirmation", b =>
+                {
+                    b.HasOne("Core.Domain.Account", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Core.Domain.OAuthConnection", b =>

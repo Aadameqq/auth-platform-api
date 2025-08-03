@@ -1,35 +1,19 @@
 using Core.Commands.Commands;
 using Core.Domain;
-using Core.Exceptions;
 using Core.Ports;
 
 namespace Core.Commands;
 
-public class ActivateAccountCommandHandler(
-    ActivationCodesRepository activationCodesRepository,
-    UnitOfWork uow
-) : CommandHandler<ActivateAccountCommand>
+public class ActivateAccountCommandHandler(UnitOfWork uow) : CommandHandler<ActivateAccountCommand>
 {
     public async Task<Result> Handle(ActivateAccountCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(cmd.Code);
+        var account = await uow.FailIfNull(() => accountsRepository.FindById(cmd.Id));
 
-        if (userId is null)
-        {
-            return new NoSuch();
-        }
+        account.Activate();
 
-        var user = await accountsRepository.FindById(userId.Value);
-
-        if (user is null || user.HasBeenActivated())
-        {
-            return new NoSuch<Account>();
-        }
-
-        user.Activate();
-
-        await accountsRepository.Update(user);
+        await accountsRepository.Update(account);
         await uow.Flush();
 
         return Result.Success();

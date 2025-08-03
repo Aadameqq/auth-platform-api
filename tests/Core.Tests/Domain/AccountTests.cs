@@ -106,26 +106,6 @@ public class AccountTests
     }
 
     [Fact]
-    public void CreateSession_ShouldFail_WhenAccountHasNotBeenActivatedYet()
-    {
-        var result = testAccount.CreateSession(DateTime.MinValue);
-
-        Assert.True(result.IsFailure);
-        Assert.IsType<AccountNotActivated>(result.Exception);
-    }
-
-    [Fact]
-    public void CreateSession_ShouldSucceed_WhenAccountHasBeenActivated()
-    {
-        testAccount.Activate();
-
-        var result = testAccount.CreateSession(DateTime.MinValue);
-
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-    }
-
-    [Fact]
     public void GetSessionCurrentToken_ShouldReturnCorrectToken_WhenSessionHasBeenCreated()
     {
         testAccount.Activate();

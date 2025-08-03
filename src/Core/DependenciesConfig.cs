@@ -13,6 +13,10 @@ public static class DependenciesConfig
         services.AddScoped<GetCurrentAccountQueryHandler>();
         services.AddScoped<ListRolesQueryHandler>();
         services.AddScoped<SessionCreator, SessionCreatorImpl>();
+        services.AddScoped<ConfirmationProviderFactory, ConfirmationProviderFactoryImpl>();
+        services.AddScoped<EmailConfirmationProvider, EmailConfirmationProviderImpl>();
+        services.AddScoped<ConfirmationService, ConfirmationService>();
+
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(DependenciesConfig).Assembly);

@@ -9,6 +9,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
 {
     public DbSet<Account> Accounts { get; set; }
     public DbSet<OAuthConnection> OAuthConnections { get; set; }
+    public DbSet<Confirmation> Confirmations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -50,6 +51,25 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Property<string>("OAuthId");
             builder.Property<string>("Provider");
+        });
+
+        modelBuilder.Entity<Confirmation>(b =>
+        {
+            b.HasKey(c => c.Id);
+
+            b.Property(c => c.OwnerId).IsRequired();
+            b.HasOne<Account>()
+                .WithMany()
+                .HasForeignKey(c => c.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Property(c => c.Action).HasConversion<string>().IsUnicode().IsRequired();
+
+            b.Property(c => c.Method).HasConversion<string>().IsUnicode().IsRequired();
+
+            b.Property(c => c.Code).IsUnicode(false).IsRequired(false);
+
+            b.Property<DateTime>("createdAt").HasColumnName("CreatedAt").IsRequired();
         });
     }
 }

@@ -1,35 +1,41 @@
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
+using Core.Other;
 using Core.Ports;
 
 namespace Core.Commands;
 
 public class InitializePasswordResetCommandHandler(
     UnitOfWork uow,
-    PasswordResetCodesRepository codesRepository,
-    PasswordResetEmailSender emailSender
-) : CommandHandler<InitializePasswordResetCommand>
+    EmailConfirmationProvider confirmationProvider
+) : CommandHandler<InitializePasswordResetCommand, Confirmation>
 {
-    public async Task<Result> Handle(InitializePasswordResetCommand cmd, CancellationToken _)
+    public async Task<Result<Confirmation>> Handle(
+        InitializePasswordResetCommand cmd,
+        CancellationToken _
+    )
     {
         var accountsRepository = uow.GetAccountsRepository();
-        var account = await accountsRepository.FindByEmail(cmd.Email);
+        var found = await accountsRepository.FindByEmail(cmd.Email);
 
-        if (account is null)
+        if (found is null)
         {
             return new NoSuch<Account>();
         }
 
-        if (!account.HasPassword())
+        if (!found.HasPassword())
         {
             return new NoPassword();
         }
 
-        var code = await codesRepository.Create(account);
+        var beginResult = await confirmationProvider.Begin(ConfirmableAction.PasswordReset, found);
 
-        await emailSender.Send(account, code);
+        if (beginResult is { IsFailure: true, Exception: TooManyAttempts })
+        {
+            return beginResult.Exception;
+        }
 
-        return Result.Success();
+        return beginResult.Value;
     }
 }
