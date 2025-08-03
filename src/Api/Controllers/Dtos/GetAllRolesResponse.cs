@@ -6,7 +6,7 @@ public record GetAllRolesResponse
 {
     public GetAllRolesResponse(List<Role> roles)
     {
-        Roles = roles.Select(r => r.Name).ToList();
+        Roles = roles.Select(r => r.ToString()).ToList();
     }
 
     public List<string> Roles { get; private init; }

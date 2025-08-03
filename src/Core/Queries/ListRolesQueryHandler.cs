@@ -7,6 +7,8 @@ public class ListRolesQueryHandler : QueryHandler<ListRolesQuery, List<Role>>
 {
     public Task<Result<List<Role>>> Handle(ListRolesQuery query, CancellationToken _)
     {
-        return Task.FromResult<Result<List<Role>>>(Role.Roles);
+        var roles = Enum.GetValues<Role>().ToList();
+
+        return Task.FromResult<Result<List<Role>>>(roles);
     }
 }
