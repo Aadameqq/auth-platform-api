@@ -128,24 +128,19 @@ public class AccountsController(IMediator mediator) : ControllerBase
 
     [HttpPost("{accountId}/role")]
     [RequireAuth]
+    [RequireAnyRole(Role.Admin)]
     public async Task<IActionResult> AssignRole(
         [FromAuth] AuthorizedUser issuer,
         [FromRoute] string accountId,
-        [FromBody] AssignRoleBody body,
-        [FromAuth] AccessManager accessManager
+        [FromBody] AssignRoleBody body
     )
     {
-        if (!accessManager.HasAnyRole(Role.Admin))
-        {
-            return ApiResponse.Forbid();
-        }
-
         if (!Guid.TryParse(accountId, out var parsedAccountId))
         {
             return ApiResponse.NotFound("Account not found");
         }
 
-        if (!Role.TryParse(body.RoleName, out var role))
+        if (!Enum.TryParse<Role>(body.RoleName, out var role))
         {
             return ApiResponse.NotFound("Role not found");
         }
@@ -174,17 +169,12 @@ public class AccountsController(IMediator mediator) : ControllerBase
 
     [HttpDelete("{accountId}/role")]
     [RequireAuth]
+    [RequireAnyRole(Role.Admin)]
     public async Task<IActionResult> UnassignRole(
         [FromAuth] AuthorizedUser issuer,
-        [FromRoute] string accountId,
-        [FromAuth] AccessManager accessManager
+        [FromRoute] string accountId
     )
     {
-        if (!accessManager.HasAnyRole(Role.Admin))
-        {
-            return ApiResponse.Forbid();
-        }
-
         if (!Guid.TryParse(accountId, out var parsedAccountId))
         {
             return ApiResponse.NotFound();

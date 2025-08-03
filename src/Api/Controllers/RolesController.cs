@@ -13,15 +13,9 @@ public class RolesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
     [RequireAuth]
-    public async Task<ActionResult<GetAllRolesResponse>> GetAll(
-        [FromAuth] AccessManager accessManager
-    )
+    [RequireAnyRole(Role.Admin)]
+    public async Task<ActionResult<GetAllRolesResponse>> GetAll()
     {
-        if (!accessManager.HasAnyRole(Role.Admin))
-        {
-            return ApiResponse.Forbid();
-        }
-
         var result = await mediator.Send(new ListRolesQuery());
 
         return new GetAllRolesResponse(result.Value);

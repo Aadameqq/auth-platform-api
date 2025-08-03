@@ -52,7 +52,7 @@ public class SystemAuthTokenService(IOptions<AuthOptions> authOptions) : AuthTok
         return new AccessTokenPayload(
             userId,
             sessionId,
-            Role.ParseOrFail(role),
+            Enum.Parse<Role>(role),
             bool.Parse(isActivated)
         );
     }
@@ -78,7 +78,7 @@ public class SystemAuthTokenService(IOptions<AuthOptions> authOptions) : AuthTok
         var claims = new List<Claim>
         {
             new(AccountIdClaimType, account.Id.ToString()),
-            new(AccountRoleClaimType, account.Role.Name),
+            new(AccountRoleClaimType, account.Role.ToString()),
             new(SessionIdClaimType, sessionId.ToString()),
             new(AccountIsActivatedClaimType, account.HasBeenActivated().ToString()),
         };
