@@ -13,7 +13,7 @@ public class JwtMiddleware(RequestDelegate next, IMediator mediator)
         {
             await next(ctx);
             return;
-        } // TODO: możeby logiki trochę do serwisu
+        }
 
         const string tokenType = "Bearer ";
 
@@ -53,6 +53,8 @@ public class JwtMiddleware(RequestDelegate next, IMediator mediator)
             result.Value.SessionId,
             result.Value.Role
         );
+
+        ctx.Items["accessToken"] = token;
         await next(ctx);
     }
 }

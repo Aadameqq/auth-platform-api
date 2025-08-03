@@ -6,8 +6,10 @@ using Core.Queries.Queries;
 
 namespace Core.Queries;
 
-public class GetTokenPayloadQueryHandler(AuthTokenService authTokenService)
-    : QueryHandler<GetTokenPayloadQuery, AccessTokenPayload>
+public class GetTokenPayloadQueryHandler(
+    AuthTokenService authTokenService,
+    RevokedTokensRepository revokedTokensRepository
+) : QueryHandler<GetTokenPayloadQuery, AccessTokenPayload>
 {
     public async Task<Result<AccessTokenPayload>> Handle(
         GetTokenPayloadQuery query,
@@ -16,7 +18,7 @@ public class GetTokenPayloadQueryHandler(AuthTokenService authTokenService)
     {
         var payload = await authTokenService.FetchPayloadIfValid(query.AccessToken);
 
-        if (payload is null)
+        if (payload is null || await revokedTokensRepository.HasBeenRevoked(query.AccessToken))
         {
             return new InvalidToken();
         }

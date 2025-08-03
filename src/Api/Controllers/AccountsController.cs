@@ -94,6 +94,7 @@ public class AccountsController(IMediator mediator) : ControllerBase
     [OptionalActivation]
     [EnsureHasNotBeenActivated]
     [RequireConfirmation(ConfirmableAction.AccountActivation, ConfirmationMethod.Email)]
+    [RevokeAccessToken]
     public async Task<IActionResult> Activate([FromAuth] AuthorizedUser user)
     {
         var result = await mediator.Send(new ActivateAccountCommand(user.UserId));

@@ -4,6 +4,7 @@ using Infrastructure.Options;
 using Infrastructure.Other;
 using Infrastructure.Persistence.Dapper;
 using Infrastructure.Persistence.EF;
+using Infrastructure.Persistence.Redis;
 using Infrastructure.Smtp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,7 @@ public static class DependenciesConfig
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
         services.AddScoped<ConfirmationCodeEmailSender, ConfirmationCodeEmailSenderImpl>();
+        services.AddScoped<RevokedTokensRepository, RedisRevokedTokensRepository>();
 
         services.AddSingleton<OAuthStateTokenService, SystemOAuthStateTokenService>();
         services.AddSingleton<AuthTokenService, SystemAuthTokenService>();
