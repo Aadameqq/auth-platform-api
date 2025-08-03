@@ -1,8 +1,10 @@
+using Api.Attributes;
 using Api.Auth;
 using Api.Controllers.Dtos;
 using Core.Commands.Commands;
 using Core.Domain;
 using Core.Exceptions;
+using Core.Other;
 using Core.Queries.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -80,41 +82,15 @@ public class AccountsController(IMediator mediator) : ControllerBase
     [HttpPost("@me/activation")]
     [RequireAuth]
     [OptionalActivation]
-    public async Task<IActionResult> InitializeActivation([FromAuth] AuthorizedUser user)
+    [EnsureHasNotBeenActivated]
+    [RequireConfirmation(ConfirmationMethod.Email, ConfirmableAction.AccountActivation)]
+    public async Task<IActionResult> Activate([FromAuth] AuthorizedUser user)
     {
-        var result = await mediator.Send(new InitializeAccountActivationCommand(user.UserId));
+        var result = await mediator.Send(new ActivateAccountCommand(user.UserId));
 
         if (result.IsFailure)
         {
-            return result.Exception switch
-            {
-                TooManyAttempts => ApiResponse.Cooldown(),
-                AlreadyActivated => ApiResponse.Forbid("Account already activated"),
-                _ => throw result.Exception,
-            };
-        }
-
-        return ApiResponse.Ok("Activation email sent");
-    }
-
-    [HttpPost("@me/activation/{code}")]
-    [RequireAuth]
-    [OptionalActivation]
-    public async Task<IActionResult> Activate(
-        [FromRoute] string code,
-        [FromAuth] AuthorizedUser user
-    )
-    {
-        var result = await mediator.Send(new ActivateAccountCommand(user.UserId, code));
-
-        if (result.IsFailure)
-        {
-            return result.Exception switch
-            {
-                NoSuch _ => ApiResponse.NotFound("Code not found"),
-                Expired _ => ApiResponse.Timeout("Given code has already expired"),
-                _ => throw result.Exception,
-            };
+            throw result.Exception;
         }
 
         return ApiResponse.Ok("Account activated. Please refresh your access token");

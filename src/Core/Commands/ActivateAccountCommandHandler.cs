@@ -4,21 +4,12 @@ using Core.Ports;
 
 namespace Core.Commands;
 
-public class ActivateAccountCommandHandler(ConfirmationService confirmationService, UnitOfWork uow)
-    : RequireConfirmationCommandHandler<ActivateAccountCommand>(confirmationService)
+public class ActivateAccountCommandHandler(UnitOfWork uow) : CommandHandler<ActivateAccountCommand>
 {
-    protected override async Task<Result<Account>> Prepare(ActivateAccountCommand cmd)
+    public async Task<Result> Handle(ActivateAccountCommand cmd, CancellationToken _)
     {
         var accountsRepository = uow.GetAccountsRepository();
-        return await uow.FailIfNull(() => accountsRepository.FindById(cmd.Id));
-    }
-
-    protected override async Task<Result> HandleWithConfirmation(
-        Account account,
-        ActivateAccountCommand cmd
-    )
-    {
-        var accountsRepository = uow.GetAccountsRepository();
+        var account = await uow.FailIfNull(() => accountsRepository.FindById(cmd.Id));
 
         account.Activate();
 

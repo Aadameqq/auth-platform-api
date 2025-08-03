@@ -56,6 +56,11 @@ public static class ApiResponse
         return GenerateResponse(422, customMessage);
     }
 
+    public static ActionResult Custom(int statusCode, object content)
+    {
+        return new JsonResult(content) { StatusCode = statusCode };
+    }
+
     public static Task ApplyAsync(HttpContext ctx, ActionResult result)
     {
         return result.ExecuteResultAsync(new ActionContext { HttpContext = ctx });

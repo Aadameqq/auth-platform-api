@@ -57,10 +57,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
         {
             builder.Property<Guid>("Id");
             builder.Property(c => c.OwnerId);
-            builder
-                .Property(c => c.Action)
-                .HasConversion(action => action.Name, name => ConfirmableAction.ParseOrFail(name))
-                .HasColumnType("varchar(50)");
+            builder.Property(c => c.Action).HasColumnType("varchar(50)");
             builder.Property<DateTime>("createdAt").HasColumnName("CreatedAt");
             builder.Property(c => c.Code);
         });

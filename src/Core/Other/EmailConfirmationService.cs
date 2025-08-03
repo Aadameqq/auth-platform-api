@@ -4,7 +4,7 @@ using Core.Ports;
 
 namespace Core.Other;
 
-public class ConfirmationServiceImpl(
+public class EmailConfirmationService(
     ConfirmationCodeEmailSender emailSender,
     DateTimeProvider dateTimeProvider,
     UnitOfWork uow
