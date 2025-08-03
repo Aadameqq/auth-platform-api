@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Api.Auth;
 using Api.Configs;
 using Api.Middlewares;
@@ -11,11 +12,17 @@ builder.Services.ConfigureInfrastructureDependencies();
 builder.Services.ConfigureCoreDependencies();
 builder.Services.ConfigureCors();
 
-builder.Services.AddControllers(options =>
-{
-    options.ModelBinderProviders.Insert(0, new AuthorizedUserBinderProvider());
-    options.ModelBinderProviders.Insert(1, new AccessManagerBinderProvider());
-});
+builder
+    .Services.AddControllers(options =>
+    {
+        options.ModelBinderProviders.Insert(0, new AuthorizedUserBinderProvider());
+        options.ModelBinderProviders.Insert(1, new AccessManagerBinderProvider());
+    })
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureOpenApi();

@@ -5,12 +5,12 @@ namespace Core.Domain;
 public class Confirmation
 {
     public readonly ConfirmableAction Action;
+    public readonly Guid Id = Guid.NewGuid();
     public readonly TimeSpan LifeSpan = TimeSpan.FromMinutes(60);
     public readonly ConfirmationMethod Method;
     public readonly Guid OwnerId;
     public readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
     private DateTime createdAt;
-    public Guid Id = Guid.NewGuid();
 
     public Confirmation(
         Account owner,
@@ -91,7 +91,6 @@ public class Confirmation
 
         Code = code;
         createdAt = now;
-        Id = Guid.NewGuid();
         return Result.Success();
     }
 
