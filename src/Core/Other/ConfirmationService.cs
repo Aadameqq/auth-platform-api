@@ -19,18 +19,14 @@ public class ConfirmationService(UnitOfWork uow, DateTimeProvider dateTimeProvid
 
         if (found is not null)
         {
-            var result = found.Refresh(dateTimeProvider.Now(), code);
-
-            if (result is { IsFailure: true, Exception: TooManyAttempts })
+            if (found.IsCooldown(dateTimeProvider.Now()))
             {
-                return result.Exception;
+                return new TooManyAttempts();
             }
 
-            if (result.IsSuccess && found.DoesMethodEqual(method))
+            if (found.DoesMethodEqual(method))
             {
-                await repository.Update(found);
-                await uow.Flush();
-                return found;
+                _ = repository.Delete(found);
             }
         }
 

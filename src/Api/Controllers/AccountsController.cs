@@ -15,7 +15,9 @@ namespace Api.Controllers;
 public class AccountsController(IMediator mediator) : ControllerBase
 {
     [HttpPost("")]
-    public async Task<ActionResult<TokenPairResponse>> Create([FromBody] CreateAccountBody body)
+    public async Task<ActionResult<TokenPairWithConfirmationResponse>> Create(
+        [FromBody] CreateAccountBody body
+    )
     {
         var result = await mediator.Send(
             new CreateAccountCommand(body.Username, body.Email, body.Password)
@@ -33,7 +35,11 @@ public class AccountsController(IMediator mediator) : ControllerBase
             };
         }
 
-        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
+        return new TokenPairWithConfirmationResponse(
+            result.Value.AccessToken,
+            result.Value.RefreshToken,
+            result.Value.ConfirmationId
+        );
     }
 
     [HttpGet("@me")]

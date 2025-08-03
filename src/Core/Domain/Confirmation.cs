@@ -10,7 +10,7 @@ public class Confirmation
     public readonly ConfirmationMethod Method;
     public readonly Guid OwnerId;
     public readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
-    private DateTime createdAt;
+    private readonly DateTime createdAt;
 
     public Confirmation(
         Account owner,
@@ -40,7 +40,7 @@ public class Confirmation
     private Confirmation() { }
 #pragma warning restore CS8618
 
-    public string? Code { get; private set; }
+    public string? Code { get; }
 
     public bool HasExpired(DateTime now)
     {
@@ -75,23 +75,6 @@ public class Confirmation
     public bool IsCodeCorrect(string code)
     {
         return code == Code;
-    }
-
-    public Result Refresh(DateTime now, string? code)
-    {
-        if (IsCooldown(now))
-        {
-            return new TooManyAttempts();
-        }
-
-        if (HasExpired(now))
-        {
-            return new Expired();
-        }
-
-        Code = code;
-        createdAt = now;
-        return Result.Success();
     }
 
     public bool DoesMethodEqual(ConfirmationMethod other)
