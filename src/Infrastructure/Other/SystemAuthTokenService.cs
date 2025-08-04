@@ -48,12 +48,20 @@ public class SystemAuthTokenService(IOptions<AuthOptions> authOptions) : AuthTok
         var sessionId = Guid.Parse(JwtService.GetClaim(principal, SessionIdClaimType));
         var role = JwtService.GetClaim(principal, AccountRoleClaimType);
         var isActivated = JwtService.GetClaim(principal, AccountIsActivatedClaimType);
+        var timeLeft = JwtService.GetTimeLeft(accessToken);
+
+        if (timeLeft.Equals(TimeSpan.Zero))
+        {
+            return null;
+        }
 
         return new AccessTokenPayload(
             userId,
             sessionId,
             Enum.Parse<Role>(role),
-            bool.Parse(isActivated)
+            bool.Parse(isActivated),
+            accessToken,
+            timeLeft
         );
     }
 

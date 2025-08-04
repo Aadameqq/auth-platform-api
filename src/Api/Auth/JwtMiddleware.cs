@@ -1,4 +1,4 @@
-using Core.Queries.Queries;
+using Core.Commands.Commands;
 using MediatR;
 
 namespace Api.Auth;
@@ -27,7 +27,7 @@ public class JwtMiddleware(RequestDelegate next, IMediator mediator)
 
         var token = headerContent[tokenType.Length..];
 
-        var result = await mediator.Send(new GetTokenPayloadQuery(token));
+        var result = await mediator.Send(new AuthorizeCommand(token));
 
         if (result.IsFailure)
         {
@@ -39,7 +39,9 @@ public class JwtMiddleware(RequestDelegate next, IMediator mediator)
             ?.Metadata.OfType<OptionalActivationAttribute>()
             .FirstOrDefault();
 
-        if (!result.Value.IsActivated && optionalActivationAttribute is null)
+        var payload = result.Value;
+
+        if (!payload.IsActivated && optionalActivationAttribute is null)
         {
             await ApiResponse.ApplyAsync(
                 ctx,
@@ -48,13 +50,14 @@ public class JwtMiddleware(RequestDelegate next, IMediator mediator)
             return;
         }
 
-        ctx.Items["authorizedUser"] = new AuthorizedUser(
-            result.Value.UserId,
-            result.Value.SessionId,
-            result.Value.Role
+        ctx.Items[AuthCtxConstants.AuthUser] = new AuthorizedUser(
+            payload.UserId,
+            payload.SessionId,
+            payload.Role,
+            payload.AccessToken,
+            payload.LifeTimeLeft
         );
 
-        ctx.Items["accessToken"] = token;
         await next(ctx);
     }
 }

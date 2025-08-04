@@ -32,10 +32,10 @@ public static class DependenciesConfig
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<OAuthServiceFactory, OAuthServiceFactoryImpl>();
         services.AddScoped<ConfirmationCodeEmailSender, ConfirmationCodeEmailSenderImpl>();
-        services.AddScoped<RevokedTokensRepository, RedisRevokedTokensRepository>();
 
-        services.AddSingleton<OAuthStateTokenService, SystemOAuthStateTokenService>();
+        services.AddSingleton<RevokedTokensRepository, RedisRevokedTokensRepository>();
         services.AddSingleton<AuthTokenService, SystemAuthTokenService>();
+        services.AddSingleton<OAuthStateTokenService, SystemOAuthStateTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<SqlConnectionFactory, DapperSqlConnectionFactory>();
 

@@ -2,4 +2,11 @@ using Core.Domain;
 
 namespace Core.Dtos;
 
-public record AccessTokenPayload(Guid UserId, Guid SessionId, Role Role, bool IsActivated);
+public record AccessTokenPayload(
+    Guid UserId,
+    Guid SessionId,
+    Role Role,
+    bool IsActivated,
+    string AccessToken,
+    TimeSpan LifeTimeLeft
+);

@@ -5,10 +5,10 @@ namespace Infrastructure.Persistence.Redis;
 
 public class RedisRevokedTokensRepository(IConnectionMultiplexer redis) : RevokedTokensRepository
 {
-    public async Task Revoke(string token)
+    public async Task Revoke(string token, TimeSpan lifeTimeLeft)
     {
         var db = redis.GetDatabase();
-        await db.StringSetAsync(token, true);
+        await db.StringSetAsync(token, true, lifeTimeLeft);
     }
 
     public async Task<bool> HasBeenRevoked(string token)

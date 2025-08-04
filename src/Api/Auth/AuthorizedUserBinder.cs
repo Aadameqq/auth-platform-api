@@ -7,7 +7,7 @@ public class AuthorizedUserBinder : IModelBinder
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         if (
-            bindingContext.HttpContext.Items.TryGetValue("authorizedUser", out var value)
+            bindingContext.HttpContext.Items.TryGetValue(AuthCtxConstants.AuthUser, out var value)
             && value is AuthorizedUser authUser
         )
         {

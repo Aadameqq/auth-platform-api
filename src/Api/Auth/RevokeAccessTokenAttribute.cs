@@ -12,12 +12,19 @@ public class RevokeAccessTokenAttribute : Attribute, IAsyncActionFilter
     )
     {
         var httpCtx = ctx.HttpContext;
-        if (httpCtx.Items.TryGetValue("accessToken", out var value) && value is string token)
+        if (
+            !httpCtx.Items.TryGetValue(AuthCtxConstants.AuthUser, out var value)
+            || value is not AuthorizedUser authUser
+        )
         {
-            var revokedTokensRepository =
-                httpCtx.RequestServices.GetRequiredService<RevokedTokensRepository>();
-            await revokedTokensRepository.Revoke(token);
+            throw new InvalidOperationException(
+                $"{nameof(RevokeAccessTokenAttribute)} cannot be used without authorization."
+            );
         }
+
+        var revokedTokensRepository =
+            httpCtx.RequestServices.GetRequiredService<RevokedTokensRepository>();
+        await revokedTokensRepository.Revoke(authUser.Token, authUser.LifeTimeLeft);
 
         await next();
     }

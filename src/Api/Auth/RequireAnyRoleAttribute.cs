@@ -13,7 +13,7 @@ public class RequireAnyRoleAttribute(params Role[] roles) : Attribute, IAsyncAct
     {
         var httpCtx = ctx.HttpContext;
         if (
-            !httpCtx.Items.TryGetValue("authorizedUser", out var value)
+            !httpCtx.Items.TryGetValue(AuthCtxConstants.AuthUser, out var value)
             || value is not AuthorizedUser authUser
         )
         {
