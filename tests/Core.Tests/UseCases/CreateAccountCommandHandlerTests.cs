@@ -112,7 +112,11 @@ public class CreateAccountCommandHandlerTests
         sessionCreatorMock.DidNotReceive().CreateSession(Arg.Any<Account>());
     }
 
-    private Task<Result<TokenPairOutput>> RunCommand(string userName, string email, string password)
+    private Task<Result<CreatedAccountOutput>> RunCommand(
+        string userName,
+        string email,
+        string password
+    )
     {
         var cmd = new CreateAccountCommand(userName, email, password);
         return commandHandler.Handle(cmd, CancellationToken.None);

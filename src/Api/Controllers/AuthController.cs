@@ -64,6 +64,7 @@ public class AuthController(IMediator mediator) : ControllerBase
     [HttpDelete]
     [RequireAuth]
     [OptionalActivation]
+    [RevokeAccessToken]
     public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
         var result = await mediator.Send(new LogOutCommand(authUser.UserId, authUser.SessionId));

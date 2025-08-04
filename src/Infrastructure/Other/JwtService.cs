@@ -21,6 +21,22 @@ public class JwtService(string stringKey, bool hasLifetime = true, int lifetimeI
         return claim;
     }
 
+    public static TimeSpan GetTimeLeft(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+
+        var jwt = handler.ReadJwtToken(token);
+
+        var validTo = jwt.ValidTo;
+
+        if (validTo <= DateTime.UtcNow)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return validTo - DateTime.UtcNow;
+    }
+
     public string SignToken(List<Claim> claims)
     {
         var now = DateTime.UtcNow;

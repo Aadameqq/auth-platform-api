@@ -11,9 +11,12 @@ public class CreateAccountCommandHandler(
     PasswordHasher passwordHasher,
     EmailConfirmationProvider confirmationProvider,
     SessionCreator sessionCreator
-) : CommandHandler<CreateAccountCommand, TokenPairOutput>
+) : CommandHandler<CreateAccountCommand, CreatedAccountOutput>
 {
-    public async Task<Result<TokenPairOutput>> Handle(CreateAccountCommand cmd, CancellationToken _)
+    public async Task<Result<CreatedAccountOutput>> Handle(
+        CreateAccountCommand cmd,
+        CancellationToken _
+    )
     {
         var accountsRepository = uow.GetAccountsRepository();
         var found = await accountsRepository.FindByEmail(cmd.Email);
@@ -42,6 +45,10 @@ public class CreateAccountCommandHandler(
             return beginResult.Exception;
         }
 
-        return result;
+        return new CreatedAccountOutput(
+            result.Value.AccessToken,
+            result.Value.RefreshToken,
+            beginResult.Value.Id
+        );
     }
 }

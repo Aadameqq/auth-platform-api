@@ -1,10 +1,10 @@
-using Core.Domain;
+using Core.Ports;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Api.Auth;
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public class RequireAnyRoleAttribute(params Role[] roles) : Attribute, IAsyncActionFilter
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class RevokeAccessTokenAttribute : Attribute, IAsyncActionFilter
 {
     public async Task OnActionExecutionAsync(
         ActionExecutingContext ctx,
@@ -18,17 +18,13 @@ public class RequireAnyRoleAttribute(params Role[] roles) : Attribute, IAsyncAct
         )
         {
             throw new InvalidOperationException(
-                $"{nameof(RequireAuthAttribute)} cannot be used without authorization."
+                $"{nameof(RevokeAccessTokenAttribute)} cannot be used without authorization."
             );
         }
 
-        var hasAny = roles.Any(role => role == authUser.Role);
-
-        if (!hasAny)
-        {
-            await ApiResponse.ApplyAsync(httpCtx, ApiResponse.Forbid());
-            return;
-        }
+        var revokedTokensRepository =
+            httpCtx.RequestServices.GetRequiredService<RevokedTokensRepository>();
+        await revokedTokensRepository.Revoke(authUser.Token, authUser.LifeTimeLeft);
 
         await next();
     }
