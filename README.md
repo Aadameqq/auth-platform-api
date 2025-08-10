@@ -12,7 +12,7 @@ A hobby project focused on building a flexible authentication and authorization 
 
 ## Repository structure
 
-- **auth-platform** — Backend REST API (this repository)
+- **auth-platform-api** — Backend REST API (this repository)
 - **auth-platform-client** — Client-side web application (see [auth-platform-client](https://github.com/Aadameqq/auth-platform-client))
 
 ## Quick Start
